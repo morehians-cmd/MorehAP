@@ -48,33 +48,77 @@
     return ((parts[0] || 'A')[0] + ((parts[1] || '')[0] || '')).toUpperCase();
   }
 
-  /* ---------- doughnut ---------- */
-  var DONUT_COLORS = ['#2563eb', '#f7941d', '#16a34a', '#7c3aed', '#ef4444', '#0ea5e9', '#f59e0b', '#14b8a6', '#8b5cf6', '#64748b', '#94a3b8'];
+  /* ---------- charts ----------
+     Following ui-ux-pro-max (charts.csv, part-to-whole): a ring is only readable
+     to about five slices, so longer tails fold into "Others"; slices are never
+     colour-only (each legend row carries its count and share), and any set with
+     a long tail becomes a ranked bar list instead of a ring. */
+  var DONUT_COLORS = ['#1d4ed8', '#0f766e', '#b45309', '#7e22ce', '#b91c1c', '#64748b'];
 
-  function donut(title, sub, rows, total, unit) {
-    var sum = rows.reduce(function (a, r) { return a + (r.count || 0); }, 0);
-    var acc = 0, segs = [];
-    rows.forEach(function (r, i) {
-      if (!r.count) return;
+  function sumOf(rows) { return (rows || []).reduce(function (a, r) { return a + (r.count || 0); }, 0); }
+
+  /* Largest first, zero rows dropped, everything past the cap rolled into Others. */
+  function foldRows(rows, cap) {
+    var live = (rows || []).filter(function (r) { return r && (r.count || 0) > 0; })
+      .map(function (r) { return { label: r.label, count: r.count }; })
+      .sort(function (a, b) { return b.count - a.count; });
+    if (live.length <= cap) return live;
+    var head = live.slice(0, cap - 1);
+    var rest = live.slice(cap - 1).reduce(function (a, r) { return a + r.count; }, 0);
+    if (rest) head.push({ label: 'Others', count: rest });
+    return head;
+  }
+
+  function donut(title, sub, rows, unit, cap) {
+    var list = foldRows(rows, cap || 5), sum = sumOf(list), acc = 0, segs = [];
+    list.forEach(function (r, i) {
       var from = acc / sum * 360; acc += r.count;
       segs.push(DONUT_COLORS[i % DONUT_COLORS.length] + ' ' + from.toFixed(2) + 'deg ' + (acc / sum * 360).toFixed(2) + 'deg');
     });
     var bg = segs.length ? 'conic-gradient(' + segs.join(',') + ')' : '#e8eef7';
-    var legend = rows.map(function (r, i) {
+    var alt = title + ': ' + (list.length
+      ? list.map(function (r) { return r.label + ' ' + nf(r.count) + ' (' + pctOf(r.count, sum) + '%)'; }).join(', ')
+      : 'no records for this selection');
+    var legend = list.map(function (r, i) {
       return '<div class="ds-leg"><i style="background:' + DONUT_COLORS[i % DONUT_COLORS.length] + '"></i>' +
         '<b>' + escv(r.label) + '</b><small>' + nf(r.count) + ' &middot; ' + pctOf(r.count, sum) + '%</small></div>';
     }).join('');
     return '<section class="ds-panel ds-donut-card">' +
       '<header><h3>' + escv(title) + '</h3><small>' + escv(sub) + '</small></header>' +
-      '<div class="ds-donut-wrap"><div class="ds-donut" style="background:' + bg + '"><div><b>' + nf(total) + '</b><span>' + escv(unit) + '</span></div></div>' +
-      '<div class="ds-legend' + (rows.length > 7 ? ' two' : '') + '">' + legend + '</div></div></section>';
+      '<div class="ds-donut-wrap"><div class="ds-donut" role="img" aria-label="' + escv(alt) + '" style="background:' + bg + '"><div><b>' + nf(sum) + '</b><span>' + escv(unit) + '</span></div></div>' +
+      '<div class="ds-legend">' + legend + '</div></div></section>';
+  }
+
+  /* Horizontal ranking: direct label, value and a bar scaled to the leader.
+     An "Others" bucket is a summary, not a peer, so it stays out of the ranking
+     and sits at the foot of the list without a bar. */
+  var isOthers = function (r) { return /^(others?|other|none|not specified|unspecified)$/i.test(String(r.label || '').trim()); };
+
+  function ranked(title, sub, rows, limit) {
+    var live = (rows || []).filter(function (r) { return r && (r.count || 0) > 0; })
+      .sort(function (a, b) { return b.count - a.count; });
+    var rest = live.filter(function (r) { return !isOthers(r); });
+    var tail = live.filter(isOthers);
+    var list = rest.slice(0, limit).concat(tail), max = rest.length ? rest[0].count : 0;
+    var body = list.length ? list.map(function (r, i) {
+      var other = isOthers(r);
+      return '<div class="ds-rank-row' + (other ? ' other' : '') + '">' +
+        '<span title="' + escv(r.label) + '">' + escv(r.label) + '</span><b>' + nf(r.count) + '</b>' +
+        (other ? '' : '<span class="ds-rank-track"><i style="width:' + (max ? Math.max(2, Math.round(r.count / max * 100)) : 0) + '%;background:' + DONUT_COLORS[i % DONUT_COLORS.length] + '"></i></span>') +
+        '</div>';
+    }).join('') : '<div class="ds-empty">No records for this selection yet.</div>';
+    var more = live.length > list.length
+      ? '<p class="ds-rank-more">Showing ' + rest.slice(0, limit).length + ' of ' + rest.length + ' categories &middot; ' + nf(sumOf(live)) + ' records in total</p>'
+      : '';
+    return '<section class="ds-panel"><header><h3>' + escv(title) + '</h3><small>' + escv(sub) + '</small></header>' +
+      '<div class="ds-rank">' + body + '</div>' + more + '</section>';
   }
 
   /* ---------- page ---------- */
   function render(d) {
     var host = $('view');
     if (!host) return;
-    var p = d.progress || {}, ch = d.charts || {};
+    var ch = d.charts || {};
 
     var cards = (d.cards || []).map(function (c) {
       var look = { total: 'blue', enrolled: 'green', today: 'orange', pending: 'amber', cancelled: 'red', transferred: 'slate' }[c.key] || 'blue';
@@ -85,13 +129,11 @@
     }).join('');
 
     var charts =
-      '<div class="ds-col">' +
-        donut('Enrolled by Level', 'Officially enrolled', ch.byLevel || [], p.enrolled, 'Enrolled') +
-        donut('Students by Sex', 'Legal sex on record', ch.bySex || [], d.totals.scoped, 'Students') +
-      '</div>' +
-      '<div class="ds-col">' +
-        donut('Applicants by Scholarship', 'Stored categories, unmerged', ch.byScholarship || [], d.totals.scoped, 'Applicants') +
-        donut('Applicants by Previous School', 'Top 10, then Others', ch.bySchool || [], d.totals.scoped, 'Applicants') +
+      '<div class="ds-charts">' +
+        donut('Enrolled by Level', 'Officially enrolled', ch.byLevel || [], 'Enrolled', 6) +
+        donut('Students by Sex', 'Legal sex on record', ch.bySex || [], 'Students') +
+        ranked('Applicants by Scholarship', 'Stored categories, unmerged', ch.byScholarship || [], 6) +
+        ranked('Applicants by Previous School', 'Ranked, top six shown', ch.bySchool || [], 6) +
       '</div>';
 
     var levels = (d.levels || []).map(function (l) {
@@ -110,6 +152,31 @@
         '<td>' + escv(r.date) + (r.time ? '<small>' + escv(r.time) + '</small>' : '') + '</td>' +
         '<td><span class="ds-badge ' + tone + '">' + escv(st || 'Not Enrolled') + '</span></td></tr>';
     }).join('') : '<tr><td colspan="4"><div class="ds-empty">No registrations for this selection yet.</div></td></tr>';
+
+    /* Enrollment progress: the one figure the spec asks for that the page never
+       rendered. Stacked bar by status, every segment named in the key. */
+    var pr = d.progress || {};
+    var prTotal = (pr.enrolled || 0) + (pr.pending || 0) + (pr.cancelled || 0) + (pr.transferred || 0);
+    var prSeg = function (n, color) {
+      return prTotal ? '<i style="width:' + ((n || 0) / prTotal * 100).toFixed(2) + '%;background:' + color + '"></i>' : '';
+    };
+    var prAlt = 'Enrollment progress: ' + (pr.pct || 0) + '% of eligible applicants enrolled. ' +
+      nf(pr.enrolled) + ' enrolled, ' + nf(pr.pending) + ' not yet enrolled, ' +
+      nf(pr.cancelled) + ' cancelled, ' + nf(pr.transferred) + ' transferred out.';
+    var progress =
+      '<section class="ds-progress">' +
+        '<div class="ds-progress-copy"><b>' + (pr.pct || 0) + '% enrolled</b>' +
+          '<small>' + nf(pr.enrolled) + ' of ' + nf(pr.eligible) + ' eligible applicants &middot; SY ' + escv(d.sy) + '</small></div>' +
+        '<div class="ds-progress-bar" role="img" aria-label="' + escv(prAlt) + '">' +
+          prSeg(pr.enrolled, '#15803d') + prSeg(pr.pending, '#a16207') + prSeg(pr.cancelled, '#c01c1c') + prSeg(pr.transferred, '#52627d') +
+        '</div>' +
+        '<div class="ds-progress-key">' +
+          '<span><i style="background:#15803d"></i>' + nf(pr.enrolled) + ' enrolled</span>' +
+          '<span><i style="background:#a16207"></i>' + nf(pr.pending) + ' not yet enrolled</span>' +
+          '<span><i style="background:#c01c1c"></i>' + nf(pr.cancelled) + ' cancelled</span>' +
+          '<span><i style="background:#52627d"></i>' + nf(pr.transferred) + ' transferred out</span>' +
+        '</div>' +
+      '</section>';
 
     var canFull = (typeof FULL === 'function') && FULL();
     var canSys = (typeof SYS === 'function') && SYS();
@@ -160,15 +227,14 @@
             '</div></div>' +
           '<div class="ds-avatar" aria-hidden="true">' + escv(initials()) + '</div>' +
         '</section>' +
-        '<div class="ds-main">' +
-          '<section class="ds-cards">' + cards + '</section>' +
-          charts +
-        '</div>' +
+        '<section class="ds-cards">' + cards + '</section>' +
+        progress +
+        charts +
         '<section class="ds-levels-wrap"><header><h3>Summary per Academic Level</h3><small>Enrolled students, with grade, strand and program counts</small></header>' +
           '<div class="ds-levels">' + levels + '</div></section>' +
         '<div class="ds-two">' +
           '<section class="ds-panel"><header><h3>Recent Registrations</h3><a href="javascript:void(0)" data-act="nav" data-v="adm">View all</a></header>' +
-            '<div class="ds-table-wrap"><table class="ds-table"><thead><tr><th>Student</th><th>Level</th><th>Registered</th><th>Status</th></tr></thead>' +
+            '<div class="ds-table-wrap"><table class="ds-table"><caption class="ds-sr">Ten most recent registrations for this selection</caption><thead><tr><th>Student</th><th>Level</th><th>Registered</th><th>Status</th></tr></thead>' +
             '<tbody>' + recent + '</tbody></table></div></section>' +
           '<section class="ds-panel"><header><h3>Quick Actions</h3></header><div class="ds-quick">' + quick + '</div></section>' +
         '</div>' +
