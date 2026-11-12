@@ -1613,11 +1613,14 @@ body.sbc .nav{position:relative}
 
 /* ===== admissions dashboard (approved wireframe) ===== */
 /* The institutional top banner runs the full width above the sidebar and the page. */
-.ma-dash-banner{position:fixed;top:0;left:0;right:0;z-index:60;background:#062a5e;line-height:0;overflow:hidden;height:clamp(96px,14.3vw,240px)}
+/* sidebar, page margin and banner all read one width */
+:root{--sbw:256px}
+body.sbc{--sbw:80px}
+.ma-dash-banner{position:fixed;top:0;left:var(--sbw,0px);right:0;z-index:60;background:#062a5e;line-height:0;overflow:hidden;height:clamp(96px,14.3vw,240px)}
 .ma-dash-banner img{display:block;width:100%;height:100%;object-fit:cover;object-position:center top}
-aside{padding-top:clamp(96px,14.3vw,240px)!important}
+aside{padding-top:0!important}
 main{margin-top:clamp(96px,14.3vw,240px)!important}
-@media(max-width:1023px){.ma-dash-banner{position:static;height:auto}.ma-dash-banner img{height:auto}aside{padding-top:0!important}main{margin-top:0!important}}
+@media(max-width:1023px){.ma-dash-banner{position:static;left:auto;height:auto}.ma-dash-banner img{height:auto}aside{padding-top:0!important}main{margin-top:0!important}}
 
 /* Dashboard tokens. One ink scale and one hairline so every panel matches;
    every text tone here clears 4.5:1 on white and on its own tint. */
@@ -1636,7 +1639,9 @@ main{margin-top:clamp(96px,14.3vw,240px)!important}
 .ds-avatar{position:absolute;right:26px;top:50%;transform:translateY(-50%);z-index:1;width:84px;height:84px;border-radius:50%;background:#fff;color:#0b2f6b;display:grid;place-items:center;font:800 28px Inter,sans-serif;box-shadow:0 8px 20px #062a5e55}
 
 /* six summary boxes, one balanced row that wraps instead of squeezing */
-.ds-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(168px,100%),1fr));grid-auto-rows:1fr;gap:12px;min-width:0}
+.ds-main{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:stretch}
+.ds-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;gap:12px;min-width:0}
+.ds-col{display:grid;grid-auto-rows:1fr;gap:14px;min-width:0}
 .ds-card{display:flex;gap:11px;align-items:center;padding:14px 13px;min-height:92px;border:1px solid transparent;border-radius:12px;text-align:left;cursor:pointer;font:inherit;color:inherit;min-width:0;transition:transform .15s,box-shadow .15s,border-color .15s}
 .ds-card:hover{transform:translateY(-2px);box-shadow:0 10px 22px #0a2a5b14}
 .ds-card-ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;flex:none}
@@ -1652,20 +1657,7 @@ main{margin-top:clamp(96px,14.3vw,240px)!important}
 .ds-card.red{background:#fdeced;border-color:#f4c7cb}.ds-card.red .ds-card-ic{background:#c01c1c}
 .ds-card.slate{background:#eef2f8;border-color:#d9e3f0}.ds-card.slate .ds-card-ic{background:#52627d}
 
-/* enrollment progress: one stacked bar, labelled in words as well as colour */
-.ds-progress{display:grid;grid-template-columns:minmax(0,auto) minmax(160px,1fr) auto;gap:8px 18px;align-items:center;padding:14px 18px;border:1px solid var(--ds-line);border-radius:14px;background:#fff}
-.ds-progress-copy{min-width:0}
-.ds-progress-copy b{display:block;font:800 17px/1.2 Inter,sans-serif;color:var(--ds-ink)}
-.ds-progress-copy small{display:block;color:var(--ds-meta);font:500 12px/1.4 Inter,sans-serif}
-.ds-progress-bar{display:flex;height:10px;border-radius:999px;background:#e9eff8;overflow:hidden}
-.ds-progress-bar i{display:block;height:100%}
-.ds-progress-bar i+i{box-shadow:inset 1px 0 0 #fff}
-.ds-progress-key{display:flex;flex-wrap:wrap;gap:6px 16px;grid-column:1/-1}
-.ds-progress-key span{display:inline-flex;align-items:center;gap:6px;color:var(--ds-meta);font:600 12px Inter,sans-serif}
-.ds-progress-key i{width:9px;height:9px;border-radius:3px;flex:none}
-
-/* charts: four equal panels across, each readable on its own */
-.ds-charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(258px,100%),1fr));gap:14px;align-items:stretch}
+/* panels fill their column, two per column */
 .ds-panel{display:flex;flex-direction:column;background:#fff;border:1px solid var(--ds-line);border-radius:14px;padding:16px 18px;min-width:0}
 .ds-panel>header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px}
 .ds-panel>header h3{display:flex;align-items:center;gap:8px;margin:0;font:800 14.5px/1.3 Inter,sans-serif;color:var(--ds-ink)}
@@ -1702,7 +1694,7 @@ main{margin-top:clamp(96px,14.3vw,240px)!important}
 .ds-levels-wrap>header{margin:2px 0 10px}
 .ds-levels-wrap>header h3{margin:0;font:800 15.5px Inter,sans-serif;color:var(--ds-ink)}
 .ds-levels-wrap>header small{color:var(--ds-meta);font-size:12px}
-.ds-levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(176px,100%),1fr));gap:12px}
+.ds-levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:12px}
 .ds-lvl{background:#fff;border:1px solid var(--ds-line);border-radius:14px;padding:14px;min-width:0}
 .ds-lvl>header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:9px;margin-bottom:9px;border-bottom:1px solid #eef2f8}
 .ds-lvl h4{margin:0;font:800 12.5px/1.3 Inter,sans-serif;color:var(--ds-ink);text-transform:none}
@@ -1760,14 +1752,17 @@ main{margin-top:clamp(96px,14.3vw,240px)!important}
 }
 
 @media(max-width:1180px){
+  .ds-main{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .ds-cards{grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr))}
   .ds-two{grid-template-columns:1fr}
-  .ds-progress{grid-template-columns:1fr;gap:10px}
 }
 @media(max-width:1000px){
   .ds-welcome{flex-direction:column;padding:22px 24px}
   .ds-avatar{position:static;transform:none;margin:16px auto 0;width:70px;height:70px;font:800 24px Inter,sans-serif}
 }
 @media(max-width:860px){
+  .ds-main{grid-template-columns:1fr}
+  .ds-cards{grid-column:auto;grid-template-columns:repeat(2,minmax(0,1fr))}
   .ds-attn-counts{grid-template-columns:1fr 1fr}
   .ds-attn-row{grid-template-columns:minmax(0,1fr) auto}
   .ds-attn-row em{grid-column:1/-1}
@@ -1776,7 +1771,6 @@ main{margin-top:clamp(96px,14.3vw,240px)!important}
 @media(max-width:600px){
   .ds-page{gap:13px}
   .ds-cards{grid-template-columns:1fr}
-  .ds-progress{padding:13px}
   .ds-panel{padding:14px}
   .ds-table{min-width:0}
   .ds-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}

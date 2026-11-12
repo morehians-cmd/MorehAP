@@ -128,10 +128,13 @@
       '</button>';
     }).join('');
 
+    /* Columns two and three of the wireframe: two stacked panels each. */
     var charts =
-      '<div class="ds-charts">' +
+      '<div class="ds-col">' +
         donut('Enrolled by Level', 'Officially enrolled', ch.byLevel || [], 'Enrolled', 6) +
         donut('Students by Sex', 'Legal sex on record', ch.bySex || [], 'Students') +
+      '</div>' +
+      '<div class="ds-col">' +
         ranked('Applicants by Scholarship', 'Stored categories, unmerged', ch.byScholarship || [], 6) +
         ranked('Applicants by Previous School', 'Ranked, top six shown', ch.bySchool || [], 6) +
       '</div>';
@@ -152,31 +155,6 @@
         '<td>' + escv(r.date) + (r.time ? '<small>' + escv(r.time) + '</small>' : '') + '</td>' +
         '<td><span class="ds-badge ' + tone + '">' + escv(st || 'Not Enrolled') + '</span></td></tr>';
     }).join('') : '<tr><td colspan="4"><div class="ds-empty">No registrations for this selection yet.</div></td></tr>';
-
-    /* Enrollment progress: the one figure the spec asks for that the page never
-       rendered. Stacked bar by status, every segment named in the key. */
-    var pr = d.progress || {};
-    var prTotal = (pr.enrolled || 0) + (pr.pending || 0) + (pr.cancelled || 0) + (pr.transferred || 0);
-    var prSeg = function (n, color) {
-      return prTotal ? '<i style="width:' + ((n || 0) / prTotal * 100).toFixed(2) + '%;background:' + color + '"></i>' : '';
-    };
-    var prAlt = 'Enrollment progress: ' + (pr.pct || 0) + '% of eligible applicants enrolled. ' +
-      nf(pr.enrolled) + ' enrolled, ' + nf(pr.pending) + ' not yet enrolled, ' +
-      nf(pr.cancelled) + ' cancelled, ' + nf(pr.transferred) + ' transferred out.';
-    var progress =
-      '<section class="ds-progress">' +
-        '<div class="ds-progress-copy"><b>' + (pr.pct || 0) + '% enrolled</b>' +
-          '<small>' + nf(pr.enrolled) + ' of ' + nf(pr.eligible) + ' eligible applicants &middot; SY ' + escv(d.sy) + '</small></div>' +
-        '<div class="ds-progress-bar" role="img" aria-label="' + escv(prAlt) + '">' +
-          prSeg(pr.enrolled, '#15803d') + prSeg(pr.pending, '#a16207') + prSeg(pr.cancelled, '#c01c1c') + prSeg(pr.transferred, '#52627d') +
-        '</div>' +
-        '<div class="ds-progress-key">' +
-          '<span><i style="background:#15803d"></i>' + nf(pr.enrolled) + ' enrolled</span>' +
-          '<span><i style="background:#a16207"></i>' + nf(pr.pending) + ' not yet enrolled</span>' +
-          '<span><i style="background:#c01c1c"></i>' + nf(pr.cancelled) + ' cancelled</span>' +
-          '<span><i style="background:#52627d"></i>' + nf(pr.transferred) + ' transferred out</span>' +
-        '</div>' +
-      '</section>';
 
     var canFull = (typeof FULL === 'function') && FULL();
     var canSys = (typeof SYS === 'function') && SYS();
@@ -227,9 +205,10 @@
             '</div></div>' +
           '<div class="ds-avatar" aria-hidden="true">' + escv(initials()) + '</div>' +
         '</section>' +
-        '<section class="ds-cards">' + cards + '</section>' +
-        progress +
-        charts +
+        '<div class="ds-main">' +
+          '<section class="ds-cards">' + cards + '</section>' +
+          charts +
+        '</div>' +
         '<section class="ds-levels-wrap"><header><h3>Summary per Academic Level</h3><small>Enrolled students, with grade, strand and program counts</small></header>' +
           '<div class="ds-levels">' + levels + '</div></section>' +
         '<div class="ds-two">' +
