@@ -1,171 +1,236 @@
-/* Moreh Academy Admission Portal — canonical administrator dashboard.
-   Loaded after public-homepage.js so this is the single active dashboard renderer. */
-(function () {
-  const nfmtLocal = n => Number(n || 0).toLocaleString('en-US');
-  const pctLocal = (n, total) => total ? (Math.round((n || 0) / total * 1000) / 10) + '%' : '0%';
-  const escLocal = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
-  const dateLocal = value => {
-    if (!value) return '';
-    const d = new Date(value + 'T00:00:00');
-    return isNaN(d.getTime()) ? String(value) : d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  };
-  const asset = 'https://raw.githubusercontent.com/morehians-cmd/admissionportal/feature/public-homepage-redesign/';
-  const campus = asset + 'Moreh%20College%20Under%20Blue%20Skies%20(2).png';
+/* Moreh Academy Admission Portal — administrator dashboard (approved mockup layout).
+   Loaded after public-homepage.js, so this is the single active dashboard renderer.
 
-  function panel(title, subtitle, body, extra) {
-    return '<section class="ma-redesign-panel '+(extra || '')+'"><div class="ma-redesign-panelhead"><h3>'+title+'</h3>'+(subtitle?'<small>'+subtitle+'</small>':'')+'</div>'+body+'</section>';
+   Data notes:
+   - The portal's Enrollment Status values are Enrolled / Not Enrolled / Temporary /
+     Cancelled / Transferred Out. There is no "Approved" or "Rejected" status, so the
+     KPI cards and the donut use the real status names and real counts.
+   - The caption under each KPI figure is a real percentage of the active school year's
+     records. Invented year-over-year deltas are never shown. */
+(function () {
+  var CDN = 'https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/';
+  var CAMPUS = CDN + 'Moreh%20College%20Under%20Blue%20Skies%20(2).png';
+
+  function svg(d) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
   }
-  function kpi(title, value, note, tone, action, filter) {
-    const attrs = action ? ' data-act="'+action+'" data-v="'+(filter || '')+'" role="button" tabindex="0"' : '';
-    return '<div class="ma-redesign-kpi '+tone+'"'+attrs+'><span class="ma-redesign-kpi-icon">'+
-      ({blue:'♟',green:'✓',orange:'◷',purple:'▣',grey:'↗'}[tone] || '•')+
-      '</span><div><small>'+title+'</small><strong>'+nfmtLocal(value)+'</strong><em>'+note+'</em></div></div>';
+
+  var IC = {
+    people: svg('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'),
+    clock: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+    check: svg('<circle cx="12" cy="12" r="9"/><path d="M8.4 12.4l2.6 2.6 4.6-5.2"/>'),
+    cap: svg('<path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12.6V17c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.4"/>'),
+    bars: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
+    pie: svg('<path d="M21.2 15.9A10 10 0 1 1 8.1 2.8"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>'),
+    alert: svg('<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>'),
+    bolt: svg('<path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/>'),
+    userPlus: svg('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>'),
+    users: svg('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>'),
+    gear: svg('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>')
+  };
+
+  var nf = function (n) { return Number(n || 0).toLocaleString('en-US'); };
+  var pc = function (n, t) { return t ? Math.round((n || 0) / t * 1000) / 10 + '%' : '0%'; };
+  var escv = function (v) { return esc(v == null ? '' : v); };
+
+  function statusList(st) {
+    return [
+      { label: 'Enrolled', value: Number(st.enrolled || 0), color: '#2563eb' },
+      { label: 'Not Yet Enrolled', value: Number(st.pending || 0), color: '#f7941d' },
+      { label: 'Temporary', value: Number(st.temp || 0), color: '#7c3aed' },
+      { label: 'Cancelled', value: Number(st.cancelled || 0), color: '#ef4444' },
+      { label: 'Transferred Out', value: Number(st.transferred || 0), color: '#94a3b8' }
+    ];
   }
-  function empty(message) { return '<div class="ma-redesign-empty">'+message+'</div>'; }
+
+  function kpiCard(tone, icon, label, value, note, action, filter) {
+    return '<button type="button" class="ma3-kpi ' + tone + '" data-act="' + action + '" data-v="' + escv(filter) + '">' +
+      '<span class="ma3-kpi-ic">' + icon + '</span>' +
+      '<span><small>' + escv(label) + '</small><strong>' + nf(value) + '</strong><em>' + escv(note) + '</em></span>' +
+      '<span class="ma3-kpi-go" aria-hidden="true">&#8250;</span></button>';
+  }
+
+  function shortGrade(g) {
+    return String(g).replace(/^Grade\s+/, 'G').replace(/^Kinder\s+/, 'K').replace(/^Nursery$/, 'Nurs');
+  }
+
+  function chartHTML(rows) {
+    if (!rows.length) return '<div class="ma3-empty">No grade-level records for this school year yet.</div>';
+    var max = Math.max.apply(null, rows.map(function (r) { return r.value; }).concat([1]));
+    var step = Math.max(1, Math.ceil(max / 4 / 10) * 10);
+    var top = Math.ceil(max / step) * step;
+    var ticks = [1, 0.75, 0.5, 0.25, 0].map(function (f) { return Math.round(top * f); });
+    var bars = rows.map(function (r, i) {
+      var h = Math.max(2, Math.round(r.value / top * 100));
+      var col = i % 2 ? 'linear-gradient(180deg,#ffb160,#f1872d)' : 'linear-gradient(180deg,#4b91f5,#1d54b8)';
+      return '<div class="ma3-bar" title="' + escv(r.label) + ': ' + nf(r.value) + '"><b>' + nf(r.value) + '</b>' +
+        '<i style="height:' + h + '%;background:' + col + '"></i><small>' + escv(shortGrade(r.label)) + '</small></div>';
+    }).join('');
+    return '<div class="ma3-chart"><div class="ma3-yaxis">' + ticks.map(function (t) { return '<span>' + nf(t) + '</span>'; }).join('') + '</div>' +
+      '<div class="ma3-plot"><div class="ma3-grid"></div><div class="ma3-bars">' + bars + '</div></div></div>';
+  }
+
+  function donutHTML(list, total) {
+    var sum = list.reduce(function (a, x) { return a + x.value; }, 0);
+    var acc = 0, parts = [];
+    list.forEach(function (x) {
+      if (!x.value) return;
+      var from = acc / sum * 360, to = (acc + x.value) / sum * 360;
+      acc += x.value;
+      parts.push(x.color + ' ' + from.toFixed(2) + 'deg ' + to.toFixed(2) + 'deg');
+    });
+    var bg = parts.length ? 'conic-gradient(' + parts.join(',') + ')' : '#e8eef7';
+    var legend = list.map(function (x) {
+      return '<div><i style="background:' + x.color + '"></i><span><b>' + escv(x.label) + '</b>' +
+        '<span>' + nf(x.value) + ' &middot; ' + pc(x.value, sum) + '</span></span></div>';
+    }).join('');
+    return '<div class="ma3-status"><div class="ma3-donut" style="background:' + bg + '"><div><b>' + nf(total) + '</b><small>Total</small></div></div>' +
+      '<div class="ma3-legend">' + legend + '</div></div>';
+  }
+
+  function relTime(x) {
+    var d = String(x.date || '').slice(0, 10), t = String(x.time || '');
+    var when = null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d) && /^\d{1,2}:\d{2}$/.test(t)) when = new Date(d + 'T' + t + ':00');
+    if (!when || isNaN(when.getTime())) return escv(d || t || '');
+    var mins = Math.round((Date.now() - when.getTime()) / 60000);
+    if (mins < 0) return escv(t);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    if (mins < 1440) return Math.round(mins / 60) + 'h ago';
+    if (mins < 2880) return 'yesterday';
+    return when.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
 
   function renderDashboard(r) {
-    const d = r.data || {}, st = d.stats || {}, total = Number(st.total || 0);
-    const mainKpis =
-      kpi('Total Applications',st.total,'All active-year records','blue','dflt','All')+
-      kpi('Enrolled Students',st.enrolled,pctLocal(st.enrolled,total)+' of applicants','green','dflt','Enrolled')+
-      kpi('Not Yet Enrolled',st.pending,pctLocal(st.pending,total)+' awaiting enrollment','orange','dflt','Not Enrolled')+
-      kpi('New Applications Today',st.today,'Registered today','purple');
-    const secondary =
-      kpi('Cancelled',st.cancelled,'Cancelled applications','grey','dflt','Cancelled')+
-      kpi('Transferred Out',st.transferred,'Transferred records','grey','dflt','Transferred Out');
+    var d = (r && r.data) || {}, st = d.stats || {};
+    var total = Number(st.total || 0);
+    var sy = (S.cfg && S.cfg.sy) || '';
+    var full = (typeof FULL === 'function') && FULL();
+    var sys = (typeof SYS === 'function') && SYS();
 
-    const grades = Array.isArray(d.gradeLevels) ? d.gradeLevels : (d.cards || []).flatMap(g => g.rows || []);
-    const maxGrade = Math.max(1,...grades.map(x => Number(x[1] || 0)));
-    const bars = grades.map((x,i) => {
-      const value = Number(x[1] || 0), label = String(x[0] || '');
-      const height = Math.max(3, Math.round(value / maxGrade * 118));
-      return '<div class="ma-redesign-baritem" title="'+escLocal(label)+': '+nfmtLocal(value)+'">'+
-        '<b>'+nfmtLocal(value)+'</b><i style="height:'+height+'px;background:'+(i%2?'linear-gradient(180deg,#ffad62,#f1872d)':'linear-gradient(180deg,#4b91f5,#1453bd)')+'"></i>'+
-        '<small>'+escLocal(label.replace('Grade ','Gr '))+'</small></div>';
-    }).join('');
+    var greeting = (typeof greet === 'function' ? greet() : 'Welcome');
+    var rawName = (S.user && S.user.FullName) || 'Administrator';
+    var name = (typeof tc === 'function' ? tc(rawName) : rawName);
 
-    const statuses = [
-      {label:'Enrolled',value:Number(st.enrolled||0),color:'#2475e8'},
-      {label:'Not Yet Enrolled',value:Number(st.pending||0),color:'#f59e0b'},
-      {label:'Temporary',value:Number(st.temp||0),color:'#16a085'},
-      {label:'Transferred Out',value:Number(st.transferred||0),color:'#94a3b8'},
-      {label:'Cancelled',value:Number(st.cancelled||0),color:'#64748b'}
-    ];
-    const statusTotal = statuses.reduce((sum,x)=>sum+x.value,0);
-    let angle = 0;
-    const slices = statusTotal ? statuses.map(x => {
-      const from=angle; angle += x.value/statusTotal*360;
-      return x.color+' '+from+'deg '+angle+'deg';
-    }).join(',') : '#e8eef7 0deg 360deg';
-    const legend = statuses.map(x=>'<div><i style="background:'+x.color+'"></i><span>'+x.label+'</span><b>'+nfmtLocal(x.value)+'</b></div>').join('');
-
-    const collegeRows = Array.isArray(d.collegeCourses) ? d.collegeCourses : [];
-    const collegeBody = collegeRows.length
-      ? '<div class="ma-redesign-course-list">'+collegeRows.map(x=>'<div><span>'+escLocal(x[0])+'</span><b>'+nfmtLocal(x[1])+'</b></div>').join('')+'</div>'
-      : empty('College course applications are not included in the current Basic Education admissions dataset. No course figures are being estimated or fabricated. College content can be maintained under Website Management → Academics → College.');
-
-    const shell =
-      '<div class="ma-redesign-dashboard">'+
-        '<section class="ma-redesign-masthead">'+
-          '<div class="ma-redesign-logos">'+
-            '<img src="'+asset+'mgic-logo.png" alt="Moreh Global Innovative College">'+
-            '<img src="'+asset+'moreh-academy-logo.png" alt="Moreh Academy">'+
-            '<img src="'+asset+'moreh-college-logo.png" alt="Moreh College">'+
-          '</div>'+
-          '<img class="ma-redesign-campus" src="'+campus+'" alt="Moreh Academy campus under blue skies">'+
-          '<div class="ma-redesign-motto">LEARN · GROW · EXCEL</div>'+
-        '</section>'+
-        '<section class="ma-redesign-welcome"><div><span>MOREH ACADEMY · ADMINISTRATION PORTAL</span><h2>'+escLocal((typeof greet==='function'?greet():'Welcome')+', '+(S.user.FullName || 'Administrator'))+'!</h2><p>Here is your enrollment overview for School Year '+escLocal((S.cfg && S.cfg.sy) || '')+'.</p></div><div class="ma-redesign-welcome-mark">MA</div></section>'+
-        '<section class="ma-redesign-kpis">'+mainKpis+'</section>'+
-        '<section class="ma-redesign-secondary">'+secondary+'</section>'+
-        '<section class="ma-redesign-analytics">'+
-          panel('Enrollment by Grade Level','15 Basic Education levels','<div class="ma-redesign-bars">'+(bars || empty('No grade-level records for this school year.'))+'</div>')+
-          panel('Application Status',nfmtLocal(statusTotal)+' records','<div class="ma-redesign-status"><div class="ma-redesign-donut" style="background:conic-gradient('+slices+')"><div><b>'+nfmtLocal(statusTotal)+'</b><small>Records</small></div></div><div class="ma-redesign-legend">'+legend+'</div></div>')+
-          panel('College Course Overview','Data availability',collegeBody)+
-        '</section>'+
-        '<section class="ma-redesign-two">'+
-          panel('Registration Trend','Last 14 days','<div id="ma-redesign-trend">'+empty('Loading registration trend…')+'</div>')+
-          panel('School Calendar & Upcoming Events','Published events','<div id="ma-redesign-events">'+empty('Loading events…')+'</div>')+
-        '</section>'+
-        '<section class="ma-redesign-bottom">'+
-          panel('Incomplete Application Checklist','Missing requirements, consent and certificates','<div id="ma-redesign-incomplete">'+empty('Loading application checklist…')+'</div>')+
-          (typeof FULL==='function' && FULL() ? panel('Recent System Activity','Protected audit feed','<div id="ma-redesign-activity">'+empty('Loading recent activity…')+'</div>') : '')+
-          panel('Quick Actions','Common administrator tasks',
-            '<div class="ma-redesign-actions">'+
-              '<button type="button" data-act="nav" data-v="adm"><b>▤</b><span>Admission Operations</span></button>'+
-              '<button type="button" data-act="dflt" data-v="Enrolled"><b>✓</b><span>Enrolled Students</span></button>'+
-              (typeof FULL==='function' && FULL() ? '<button type="button" data-act="nav" data-v="rep"><b>▥</b><span>Reports & Analytics</span></button>' : '')+
-              (typeof SYS==='function' && SYS() ? '<button type="button" data-act="nav" data-v="webm"><b>⌂</b><span>Website Management</span></button><button type="button" data-act="nav" data-v="um"><b>♙</b><span>User Management</span></button>' : '')+
-              '<button type="button" data-act="nav" data-v="ev"><b>▦</b><span>Campus Bulletin</span></button>'+
-            '</div>')
-        +'</section>'+
-        '<footer class="ma-redesign-footer"><b>MOREH ACADEMY</b><span>School of Righteousness and Excellence</span><span>Learn · Grow · Excel</span></footer>'+
-      '</div>';
-
-    $('view').innerHTML = shell;
-    loadDashboardPanels();
-  }
-
-  function loadDashboardPanels() {
-    google.script.run.withSuccessHandler(res => {
-      const box=$('ma-redesign-trend'); if(!box)return;
-      if(!res || !res.success || !res.data || !Array.isArray(res.data.spark) || !res.data.spark.length) {
-        box.innerHTML=empty('No registration trend data is available yet.'); return;
-      }
-      const vals=res.data.spark, max=Math.max(1,...vals);
-      box.innerHTML='<div class="ma-redesign-trendbars">'+vals.map((v,i)=>
-        '<div title="'+nfmtLocal(v)+' registrations"><b>'+nfmtLocal(v)+'</b><i style="height:'+Math.max(3,Math.round(v/max*78))+'px"></i><small>'+(i===0?'14d':i===6?'7d':i===13?'Today':'')+'</small></div>'
-      ).join('')+'</div><div class="ma-redesign-trendfoot"><span>Daily registrations</span><b>'+(res.data.trend ? nfmtLocal(res.data.trend.week) : '0')+' this week</b></div>';
-
-      const target=$('ma-redesign-incomplete'); if(!target)return;
-      const a=res.data.attention || {}, counts=a.counts || {}, rows=a.rows || [];
-      const summary='<div class="ma-redesign-check-counts">'+
-        '<span><b>'+nfmtLocal(counts.req||0)+'</b> Requirements</span>'+
-        '<span><b>'+nfmtLocal(counts.consent||0)+'</b> Consent</span>'+
-        '<span><b>'+nfmtLocal(counts.cert||0)+'</b> Certificates</span></div>';
-      const list=rows.length ? rows.slice(0,8).map(x=>
-        '<button type="button" class="ma-redesign-check-row" data-act="dflt" data-v="All">'+
-          '<span><b>'+escLocal(x.name)+'</b><small>'+escLocal(x.grade)+' · '+escLocal(x.status)+'</small></span>'+
-          '<em>'+escLocal((x.badges||[]).join(' · '))+'</em></button>'
-      ).join('') : empty('No incomplete application requirements were found.');
-      target.innerHTML=summary+list+'<div class="ma-redesign-panel-link"><button type="button" data-act="nav" data-v="adm">Open Admission Operations →</button></div>';
-    }).withFailureHandler(()=>{
-      const box=$('ma-redesign-trend');if(box)box.innerHTML=empty('Registration trend is temporarily unavailable.');
-      const target=$('ma-redesign-incomplete');if(target)target.innerHTML=empty('Application checklist is temporarily unavailable.');
-    }).dashboardExtra(S.token);
-
-    if(typeof FULL==='function' && FULL()) {
-      google.script.run.withSuccessHandler(res=>{
-        const box=$('ma-redesign-activity');if(!box)return;
-        const items=res&&res.success&&res.data&&Array.isArray(res.data.items)?res.data.items:[];
-        box.innerHTML=items.length?items.slice(0,8).map(x=>
-          '<div class="ma-redesign-activity-row"><span></span><div><b>'+escLocal(String(x.action||'System activity').replace(/[._]/g,' '))+'</b><small>'+escLocal(x.actor||'System')+(x.role?' · '+escLocal(x.role):'')+'</small></div><time>'+escLocal([x.date,x.time].filter(Boolean).join(' · '))+'</time></div>'
-        ).join(''):empty('No recent system activity.');
-      }).withFailureHandler(()=>{
-        const box=$('ma-redesign-activity');if(box)box.innerHTML=empty('Activity is temporarily unavailable.');
-      }).getRecentActivity(S.token,10);
+    var dt = $('maTopDate');
+    if (dt) {
+      dt.innerHTML = ((typeof I === 'object' && I.cal) ? I.cal : '') + '<b>' +
+        new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) + '</b>';
+      var tr = document.querySelector('#main>.top .tr'), chip = tr && tr.querySelector('.uchip');
+      if (tr && chip && dt.parentNode !== tr) tr.insertBefore(dt, chip);
     }
 
-    google.script.run.withSuccessHandler(res=>{
-      const box=$('ma-redesign-events');if(!box)return;
-      const events=res&&res.success&&Array.isArray(res.data)?res.data:[];
-      const today=new Date();today.setHours(0,0,0,0);
-      const upcoming=events.filter(e=>e.EventDate && new Date(e.EventDate+'T00:00:00')>=today)
-        .sort((a,b)=>(a.EventDate+a.EventTime).localeCompare(b.EventDate+b.EventTime)).slice(0,5);
-      box.innerHTML=upcoming.length?upcoming.map(e=>
-        '<div class="ma-redesign-event"><div class="ma-redesign-event-date"><b>'+escLocal(String(e.EventDate).slice(8,10))+'</b><small>'+escLocal(String(e.EventDate).slice(0,7))+'</small></div><div><b>'+escLocal(e.Title||'Untitled event')+'</b><small>'+escLocal([e.EventTime,e.Venue].filter(Boolean).join(' · '))+'</small></div></div>'
-      ).join(''):empty('No upcoming events are scheduled.');
-    }).withFailureHandler(()=>{
-      const box=$('ma-redesign-events');if(box)box.innerHTML=empty('Calendar data is temporarily unavailable.');
-    }).getEvents(S.token);
+    var grades = (Array.isArray(d.gradeLevels) ? d.gradeLevels : []).map(function (x) {
+      return { label: String(x[0] || ''), value: Number(x[1]) || 0 };
+    });
+
+    var cards =
+      kpiCard('blue', IC.people, 'Total Applications', total, 'School Year ' + sy, 'dflt', 'All') +
+      kpiCard('orange', IC.clock, 'Not Yet Enrolled', st.pending, pc(st.pending, total) + ' of applicants', 'dflt', 'Not Enrolled') +
+      kpiCard('green', IC.check, 'Enrolled Students', st.enrolled, pc(st.enrolled, total) + ' of applicants', 'dflt', 'Enrolled') +
+      kpiCard('purple', IC.cap, 'Temporary Enrollment', st.temp, pc(st.temp, total) + ' of applicants', 'dflt', 'Temporary');
+
+    var quick = [
+      '<button type="button" data-act="quick">' + IC.userPlus + '<span>Add Applicant</span></button>',
+      full ? '<button type="button" data-act="nav" data-v="rep">' + IC.bars + '<span>View Reports</span></button>' : '',
+      '<button type="button" data-act="dflt" data-v="Enrolled">' + IC.users + '<span>Manage Students</span></button>',
+      sys ? '<button type="button" data-act="nav" data-v="set">' + IC.gear + '<span>Settings</span></button>' : ''
+    ].join('');
+
+    $('view').innerHTML =
+      '<div class="ma3-dash">' +
+        '<section class="ma3-hero"><div>' +
+          '<h2>' + escv(greeting) + ', ' + escv(name) + '!</h2>' +
+          '<p>Welcome to the Moreh Academy Admission Portal.</p>' +
+          '<em>Together, we build a brighter future.</em>' +
+        '</div></section>' +
+        '<section class="ma3-kpis">' + cards + '</section>' +
+        '<section class="ma3-row">' +
+          '<div class="ma3-panel"><div class="ma3-head"><h3>' + IC.bars + 'Enrollment by Grade Level</h3><small>SY ' + escv(sy) + '</small></div>' +
+            chartHTML(grades) + '</div>' +
+          '<div class="ma3-panel"><div class="ma3-head"><h3>' + IC.pie + 'Application Status</h3></div>' +
+            donutHTML(statusList(st), total) + '</div>' +
+          '<figure class="ma3-campus"><img src="' + CAMPUS + '" alt="Moreh College campus under a blue sky">' +
+            '<figcaption><b>Moreh Academy</b><span>A Community of Excellence</span></figcaption></figure>' +
+        '</section>' +
+        '<section class="ma3-row2">' +
+          '<div class="ma3-panel"><div class="ma3-head"><h3>' + IC.alert + 'Needs Attention</h3></div>' +
+            '<div id="ma3-attn"></div></div>' +
+          '<div class="ma3-panel"><div class="ma3-head"><h3>' + IC.clock + 'Recent Activity</h3>' +
+            '<a href="javascript:void(0)" data-act="auditall">View All &#8594;</a></div>' +
+            '<div id="ma3-act"><div class="ma3-empty">Loading activity&hellip;</div></div></div>' +
+          '<div class="ma3-panel ma3-qa-wrap"><div class="ma3-head"><h3>' + IC.bolt + 'Quick Actions</h3></div>' +
+            '<div class="ma3-qa">' + quick + '</div></div>' +
+        '</section>' +
+      '</div>';
+
+    loadPanels(st, full);
+  }
+
+  function loadPanels(st, full) {
+    // Needs Attention: pending comes from the dashboard payload; the rest arrive separately.
+    var attn = { pending: Number(st.pending || 0), req: null, holds: null, sch: null };
+    function paint() {
+      var box = $('ma3-attn');
+      if (!box) return;
+      var val = function (n) { return n === null ? '&ndash;' : nf(n); };
+      box.innerHTML =
+        '<button type="button" class="ma3-attn-row" data-act="dflt" data-v="Not Enrolled"><span class="ma3-pill a">' + val(attn.pending) + '</span><span class="lbl">Pending Applications</span><span class="go">&#8250;</span></button>' +
+        '<button type="button" class="ma3-attn-row" data-act="nav" data-v="adm"><span class="ma3-pill b">' + val(attn.req) + '</span><span class="lbl">Incomplete Requirements</span><span class="go">&#8250;</span></button>' +
+        '<button type="button" class="ma3-attn-row" data-act="nav" data-v="fl"><span class="ma3-pill c">' + val(attn.holds) + '</span><span class="lbl">Holds Requiring Action</span><span class="go">&#8250;</span></button>' +
+        '<button type="button" class="ma3-attn-row" data-act="nav" data-v="sch"><span class="ma3-pill d">' + val(attn.sch) + '</span><span class="lbl">Scholarship Applications</span><span class="go">&#8250;</span></button>';
+    }
+    paint();
+
+    google.script.run.withSuccessHandler(function (res) {
+      var data = res && res.success && res.data ? res.data : null;
+      if (!data) return paint();
+      var counts = (data.attention && data.attention.counts) || {};
+      attn.req = Number(counts.req || 0);
+      var cats = Array.isArray(data.byCategory) ? data.byCategory : [];
+      attn.sch = cats.reduce(function (a, x) {
+        var k = String(x[0] || '');
+        return a + (k && k !== 'REGULAR' ? Number(x[1]) || 0 : 0);
+      }, 0);
+      paint();
+    }).withFailureHandler(function () {}).dashboardExtra(S.token);
+
+    google.script.run.withSuccessHandler(function (res) {
+      var flags = res && res.success && res.data && Array.isArray(res.data.flags) ? res.data.flags : null;
+      if (!flags) return;
+      attn.holds = flags.length;
+      paint();
+    }).withFailureHandler(function () {}).holdsOverview(S.token);
+
+    if (!full) {
+      var act = $('ma3-act');
+      if (act) act.innerHTML = '<div class="ma3-empty">The activity feed is limited to administrators and system managers.</div>';
+      return;
+    }
+    google.script.run.withSuccessHandler(function (res) {
+      var box = $('ma3-act');
+      if (!box) return;
+      var items = res && res.success && res.data && Array.isArray(res.data.items) ? res.data.items : [];
+      var dots = ['#ef4444', '#16a34a', '#2563eb', '#f59e0b'];
+      box.innerHTML = items.length ? items.slice(0, 4).map(function (x, i) {
+        var what = String(x.action || 'System activity').replace(/[._]/g, ' ');
+        var who = [x.actor || 'System', x.role || ''].filter(Boolean).join(' \u00b7 ');
+        return '<div class="ma3-act-row"><i style="background:' + dots[i % dots.length] + '"></i>' +
+          '<span><b>' + escv(what.charAt(0).toUpperCase() + what.slice(1)) + '</b><small>' + escv(who) + '</small></span>' +
+          '<time>' + relTime(x) + '</time></div>';
+      }).join('') : '<div class="ma3-empty">No recent system activity.</div>';
+    }).withFailureHandler(function () {
+      var box = $('ma3-act');
+      if (box) box.innerHTML = '<div class="ma3-empty">Activity is temporarily unavailable.</div>';
+    }).getRecentActivity(S.token, 12);
   }
 
   window.homeAdmin = function () {
-    const sy=(S.cfg && S.cfg.sy) || '';
-    head('Dashboard','Enrollment overview for School Year '+sy);
-    call('dashboard',[T()],renderDashboard);
+    var sy = (S.cfg && S.cfg.sy) || '';
+    document.body.classList.remove('sbc');
+    head('Dashboard', 'Enrollment overview for School Year ' + sy);
+    call('dashboard', [T()], renderDashboard);
   };
 })();
 

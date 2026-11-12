@@ -1194,7 +1194,7 @@ function menuFor(){
   {g:'Institutional Resources',i:I.book,items:[...guides,...(F?[['gd','Enrollment Guide',I.rep]]:[])]},
   {g:'Communication',i:I.mega,items:[['ev','Campus Bulletin',I.cal],['faq','Help Center & FAQs',I.help]]},
   ...(SYS()?[{g:'System Administration',i:I.cal,items:[['um','User Management',I.users],['set','Enrollment Settings',I.cal],['ia','ID Artwork',I.sch]]}]:[]),
-  ['me','My Profile',I.me]];
+  ['me','Account',I.me]];
  return[
   ['home','Home',I.home],
   {g:'Enrollment & Academics',i:I.adm,items:[['sp','Student Profile & Account',I.adm],['rq','School Requirements',I.rep],['tf','Schedule of Fees',I.tf],['sch','Scholarships',I.sch]]},
@@ -1268,8 +1268,8 @@ const navBtn=(x,sub)=>`<button class="nav${sub?' sub':''}" data-act="nav" data-v
 
 function renderNav(m){S.menu=m;
  $('nav').innerHTML=m.map((e,i)=>Array.isArray(e)
-  ?(e[0]==='me'?'<div class="nlabel">Account</div>':'')+navBtn(e)
-  :`<div class="ng" data-g="${i}"><button class="nav ngh" data-act="ngtoggle" data-v="${i}" aria-label="${esc(e.g)}" aria-haspopup="true" aria-expanded="false" aria-controls="ns${i}">${e.i}<span>${e.g}</span>${nbHTML(e.g)}<span class="chev">${CHEV}</span></button><div class="ns" id="ns${i}"><div class="nsh">${e.g}</div>${e.items.map(x=>navBtn(x,1)).join('')}</div></div>`).join('');
+  ?navBtn(e)
+  :`<div class="ng" data-g="${i}"><div class="ngh" aria-hidden="true"><span>${e.g}</span></div><div class="ns" id="ns${i}">${e.items.map(x=>navBtn(x,0)).join('')}</div></div>`).join('');
  sbInit()}
 
 /* flyout open / close */
@@ -1416,7 +1416,7 @@ document.addEventListener('change',e=>{if(e.target.id!=='abf')return;const f=e.t
 const SBK='mrh_sb',sbPref=()=>{try{return localStorage.getItem(SBK)}catch(e){return null}};
 function sbAria(){const m=$('menu');if(!m)return;const c=document.body.classList.contains('sbc'),w=innerWidth;
  m.setAttribute('aria-expanded',String(w<1024?$('side').classList.contains('open'):!c));m.innerHTML=(w>=1024&&!c)?'&laquo;':'&#9776;'}
-function sbApply(){const w=innerWidth;let c=false;if(w>=1024){const p=sbPref();c=p?p==='collapsed':w<1200;$('side').classList.remove('open')}
+function sbApply(){const w=innerWidth;let c=false;if(w>=1024){$('side').classList.remove('open')}
  document.body.classList.toggle('sbc',c);flyClose();tipHide();sbAria()}
 act.menu=()=>{if(innerWidth>=1024){const c=!document.body.classList.contains('sbc');try{localStorage.setItem(SBK,c?'collapsed':'expanded')}catch(e){}sbApply()}
  else{$('side').classList.toggle('open');sbAria()}};
