@@ -62,12 +62,12 @@
     var bg = segs.length ? 'conic-gradient(' + segs.join(',') + ')' : '#e8eef7';
     var legend = rows.map(function (r, i) {
       return '<div class="ds-leg"><i style="background:' + DONUT_COLORS[i % DONUT_COLORS.length] + '"></i>' +
-        '<span><b>' + escv(r.label) + '</b><small>' + nf(r.count) + ' &middot; ' + pctOf(r.count, sum) + '%</small></span></div>';
+        '<b>' + escv(r.label) + '</b><small>' + nf(r.count) + ' &middot; ' + pctOf(r.count, sum) + '%</small></div>';
     }).join('');
     return '<section class="ds-panel ds-donut-card">' +
       '<header><h3>' + escv(title) + '</h3><small>' + escv(sub) + '</small></header>' +
       '<div class="ds-donut-wrap"><div class="ds-donut" style="background:' + bg + '"><div><b>' + nf(total) + '</b><span>' + escv(unit) + '</span></div></div>' +
-      '<div class="ds-legend">' + legend + '</div></div></section>';
+      '<div class="ds-legend' + (rows.length > 7 ? ' two' : '') + '">' + legend + '</div></div></section>';
   }
 
   /* ---------- page ---------- */
@@ -75,27 +75,6 @@
     var host = $('view');
     if (!host) return;
     var p = d.progress || {}, ch = d.charts || {};
-
-    var chips = [
-      { k: 'level', label: 'Academic level', opts: ['Preschool', 'Elementary', 'Junior High', 'SHS 11', 'SHS 12', 'College'] },
-      { k: 'type', label: 'Student type', opts: ['New', 'Old'] },
-      { k: 'status', label: 'Enrollment status', opts: ['Enrolled', 'Not Enrolled', 'Temporary', 'Cancelled', 'Transferred Out'] }
-    ];
-
-    var filterBar =
-      '<section class="ds-filters">' +
-        '<div class="ds-sy"><b>' + escv(d.sy) + '</b><span>School Year</span></div>' +
-        chips.map(function (c) {
-          var picked = DS.filters[c.k] || '';
-          var opts = ['<option value="">All</option>'].concat(c.opts.map(function (o) {
-            return '<option value="' + escv(o) + '"' + (picked === o ? ' selected' : '') + '>' + escv(o) + '</option>';
-          })).join('');
-          return '<label class="ds-filter"><span>' + escv(c.label) + '</span><select data-ds-filter="' + c.k + '">' + opts + '</select></label>';
-        }).join('') +
-        '<button type="button" class="ds-btn ghost" data-ds="clear">Clear filters</button>' +
-        '<div class="ds-updated"><span>Updated ' + escv(d.updated) + '</span>' +
-          '<button type="button" class="ds-btn" data-ds="refresh">' + ICO.refresh + 'Refresh</button></div>' +
-      '</section>';
 
     var cards = (d.cards || []).map(function (c) {
       var look = { total: 'blue', enrolled: 'green', today: 'orange', pending: 'amber', cancelled: 'red', transferred: 'slate' }[c.key] || 'blue';
@@ -105,25 +84,13 @@
       '</button>';
     }).join('');
 
-    var progressPanel =
-      '<section class="ds-progress">' +
-        '<div class="ds-ring" style="--p:' + (p.pct || 0) + '"><div><b>' + (p.pct || 0) + '%</b><span>complete</span></div></div>' +
-        '<div class="ds-progress-copy"><h3>Enrollment Progress</h3>' +
-          '<p>Enrolled ÷ eligible students for ' + escv(d.sy) + '. Cancelled and transferred-out records are excluded from the eligible count.</p>' +
-          '<div class="ds-progress-stats">' +
-            '<div><b>' + nf(p.enrolled) + '</b><span>Enrolled</span></div>' +
-            '<div><b>' + nf(p.pending) + '</b><span>Pending</span></div>' +
-            '<div><b>' + nf(p.eligible) + '</b><span>Eligible</span></div>' +
-            '<div><b>' + nf(p.cancelled) + '</b><span>Cancelled</span></div>' +
-            '<div><b>' + nf(p.transferred) + '</b><span>Transferred</span></div>' +
-          '</div></div>' +
-      '</section>';
-
     var charts =
-      '<div class="ds-charts">' +
+      '<div class="ds-col">' +
         donut('Enrolled by Level', 'Officially enrolled', ch.byLevel || [], p.enrolled, 'Enrolled') +
-        donut('Applicants by Scholarship', 'Stored categories, unmerged', ch.byScholarship || [], d.totals.scoped, 'Applicants') +
         donut('Students by Sex', 'Legal sex on record', ch.bySex || [], d.totals.scoped, 'Students') +
+      '</div>' +
+      '<div class="ds-col">' +
+        donut('Applicants by Scholarship', 'Stored categories, unmerged', ch.byScholarship || [], d.totals.scoped, 'Applicants') +
         donut('Applicants by Previous School', 'Top 10, then Others', ch.bySchool || [], d.totals.scoped, 'Applicants') +
       '</div>';
 
@@ -193,10 +160,10 @@
             '</div></div>' +
           '<div class="ds-avatar" aria-hidden="true">' + escv(initials()) + '</div>' +
         '</section>' +
-        filterBar +
-        '<section class="ds-cards">' + cards + '</section>' +
-        progressPanel +
-        charts +
+        '<div class="ds-main">' +
+          '<section class="ds-cards">' + cards + '</section>' +
+          charts +
+        '</div>' +
         '<section class="ds-levels-wrap"><header><h3>Summary per Academic Level</h3><small>Enrolled students, with grade, strand and program counts</small></header>' +
           '<div class="ds-levels">' + levels + '</div></section>' +
         '<div class="ds-two">' +
@@ -227,28 +194,6 @@
     var el = document.getElementById('dsClock');
     if (el) el.textContent = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   }, 20000);
-
-  window.dsFilter = function (sel) {
-    if (!sel) return;
-    DS.filters[sel.getAttribute('data-ds-filter')] = sel.value;
-    load();
-  };
-  window.dsClear = function () {
-    DS.filters = { level: '', type: '', status: '' };
-    load();
-  };
-
-  document.addEventListener('change', function (e) {
-    var sel = e.target.closest && e.target.closest('[data-ds-filter]');
-    if (sel) { DS.filters[sel.getAttribute('data-ds-filter')] = sel.value; load(); }
-  });
-  document.addEventListener('click', function (e) {
-    var b = e.target.closest && e.target.closest('[data-ds]');
-    if (!b) return;
-    var what = b.getAttribute('data-ds');
-    if (what === 'clear') { DS.filters = { level: '', type: '', status: '' }; load(); }
-    if (what === 'refresh') load();
-  });
 
   window.homeAdmin = function () {
     var sy = (S.cfg && S.cfg.sy) || '';
