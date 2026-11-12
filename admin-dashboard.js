@@ -172,8 +172,11 @@
 /* ---------- Homepage hero editor, integrated into Website Management ---------- */
 (function () {
   const baseWebsiteManagementPage = window.websiteManagementPage;
+  const escField = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
   function heroField(id,label,value,wide) {
-    return '<label class="ma-hero-field'+(wide?' wide':'')+'"><span>'+label+'</span><input id="'+id+'" type="text" value="'+escLocal(value)+'" maxlength="1000"></label>';
+    return '<label class="ma-hero-field'+(wide?' wide':'')+'"><span>'+label+'</span><input id="'+id+'" type="text" value="'+escField(value)+'" maxlength="1000"></label>';
   }
   function websiteHeroEditor() {
     if (typeof SYS !== 'function' || !SYS()) return toast('Website Management is restricted to the main administrator.','warn');
