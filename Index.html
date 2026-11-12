@@ -1613,11 +1613,11 @@ body.sbc .nav{position:relative}
 
 /* ===== admissions dashboard (approved wireframe) ===== */
 /* The institutional top banner runs the full width above the sidebar and the page. */
-.ma-dash-banner{position:fixed;top:0;left:0;right:0;z-index:60;background:#062a5e;line-height:0;overflow:hidden}
-.ma-dash-banner img{display:block;width:100%;height:auto}
-aside{padding-top:calc(100% * 396 / 2048)!important}
-main{margin-top:calc(100% * 396 / 2048)!important}
-@media(max-width:1023px){.ma-dash-banner{position:static}aside{padding-top:0!important}main{margin-top:0!important}}
+.ma-dash-banner{position:fixed;top:0;left:0;right:0;z-index:60;background:#062a5e;line-height:0;overflow:hidden;height:clamp(96px,14.3vw,240px)}
+.ma-dash-banner img{display:block;width:100%;height:100%;object-fit:cover;object-position:center top}
+aside{padding-top:clamp(96px,14.3vw,240px)!important}
+main{margin-top:clamp(96px,14.3vw,240px)!important}
+@media(max-width:1023px){.ma-dash-banner{position:static;height:auto}.ma-dash-banner img{height:auto}aside{padding-top:0!important}main{margin-top:0!important}}
 
 .ds-page{display:grid;gap:15px;min-width:0;color:#12233f}
 
@@ -1776,6 +1776,6 @@ main{margin-top:calc(100% * 396 / 2048)!important}
 <div id="load" class="hidden"><i></i></div><div id="toast" class="hidden" role="status" aria-live="polite"></div>
 <!-- Portal scripts are served from this repository (MorehAP@main) by jsDelivr, which returns them as application/javascript.
      Pushes here go live without editing this file; jsDelivr caches branch URLs for up to 12 hours, so a change may take that long to appear. -->
-<script src="https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/public-homepage.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/admin-dashboard.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/college.js"></script></body></html>
+<script src="https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/public-homepage.js?v=20261112b"></script>
+<script src="https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/admin-dashboard.js?v=20261112b"></script>
+<script src="https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/college.js?v=20261112b"></script></body></html>
