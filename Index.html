@@ -1569,7 +1569,18 @@ aside{width:232px!important;background:linear-gradient(180deg,#0c2140 0%,#071427
 
 /* --- content frame, top bar, footer --- */
 #main{padding:0!important;max-width:none!important;min-width:0}
-#main>.top{margin:14px 22px 16px!important;padding:8px 14px!important;border:1px solid var(--ma-line)!important;border-radius:12px!important;background:#fff!important;box-shadow:0 2px 10px #0a2a5b0a!important;min-height:52px!important;display:flex!important;align-items:center!important}
+#main>.top{margin:14px 22px 16px!important;padding:9px 16px!important;border:1px solid var(--ma-line)!important;border-radius:12px!important;background:#fff!important;box-shadow:0 2px 10px #0a2a5b0a!important;min-height:56px!important;display:flex!important;align-items:center!important;gap:12px!important}
+#main>.top .tl{flex:0 1 auto!important;min-width:0;gap:10px!important}
+#main>.top .tl h1{font-size:18px!important;font-weight:800!important;line-height:1.2;margin:0}
+#main>.top .tl p{font-size:12px!important;margin:2px 0 0!important;color:#64748b!important}
+#main>.top .tl .tlogo{width:32px!important;height:32px!important;border-radius:8px!important;object-fit:contain!important;background:#fff!important}
+#main>.top #gsw{flex:1 1 240px!important;max-width:420px;margin-left:auto!important}
+#main>.top #gsw input{height:36px!important;border:1px solid #d9e2ef!important;border-radius:8px!important;background:#fbfcfe!important;padding:0 12px!important;font-size:13px!important}
+#main>.top .tr{flex:0 0 auto!important;margin-left:auto!important;gap:10px!important}
+#main>.top{flex-wrap:nowrap!important}
+#main>.top .rbd{display:none!important}
+#main>.top #gsw{min-width:0!important}
+@media(max-width:900px){#main>.top{flex-wrap:wrap!important}#main>.top #gsw{flex:1 1 100%!important;max-width:none!important}}
 #view{padding:0 22px 8px}
 #ftr{display:flex!important;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:10px 22px 20px!important;padding:14px 2px 0!important;border-top:1px solid var(--ma-line)!important;color:#64748b!important;font-size:12px;background:none!important}
 #ftr .fl1{display:flex!important;align-items:center;gap:10px;flex-wrap:wrap;color:#64748b!important}
@@ -1731,4 +1742,5 @@ aside{width:232px!important;background:linear-gradient(180deg,#0c2140 0%,#071427
 <!-- Portal scripts are served from this repository (MorehAP@main) by jsDelivr, which returns them as application/javascript.
      Pushes here go live without editing this file; jsDelivr caches branch URLs for up to 12 hours, so a change may take that long to appear. -->
 <script src="https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/public-homepage.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/admin-dashboard.js"></script></body></html>
+<script src="https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/admin-dashboard.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/college.js"></script></body></html>

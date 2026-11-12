@@ -22,7 +22,7 @@ function boot(){try{boot0()}catch(e){$('app').classList.remove('hidden');toast('
 function boot0(){const u=S.user;$('role').textContent=A()?'Admin':'Student';$('who').textContent=u.FullName||u.Username;$('uname').textContent=tc(u.FullName||u.Username);$('urole').textContent=A()?ROLEN(u.Clearance):'Student';setAv();topInit();
 renderNav(menuFor());document.querySelector('[data-act=out]').innerHTML=I.out+'Sign out';if(u.MustChange==='1'){S.pe=true;nav('me');toast('Please set a new password to continue.','warn')}else{nav(OFC()?'fl':'home');if(!OFC())loadNotifs()}idleReset()}
 
-function nav(id){$('dd').classList.add('hidden');$('np').classList.add('hidden');document.querySelectorAll('#nav .nav').forEach(b=>b.classList.toggle('on',b.dataset.v===id));const hit=document.querySelector('#nav .sub[data-v="'+id+'"]'),hg=hit&&hit.closest('.ng');if(hg){document.querySelectorAll('#nav .ng').forEach(x=>{x.classList.toggle('open',x===hg);x.querySelector('.ngh').classList.toggle('has',x===hg)})}$('side').classList.remove('open');({home,adm,rep,me:profile,sp:stuProfile,rq:stuReq,pp:privacyPage,ev:eventsPage,um:usersPage,set:settingsPage,sch:schPage,tf:tuitionPage,fl:flagsPage,gd:guidePage,about:()=>contentPage('about'),cluster:()=>contentPage('cluster'),handbook:()=>contentPage('handbook'),facilities:()=>contentPage('facilities'),faq:()=>contentPage('faq'),ia:idArtPage,ce:careerPage,ac:acadPage,webm:websiteManagementPage})[id]()}
+function nav(id){$('dd').classList.add('hidden');$('np').classList.add('hidden');document.querySelectorAll('#nav .nav').forEach(b=>b.classList.toggle('on',b.dataset.v===id));const hit=document.querySelector('#nav .sub[data-v="'+id+'"]'),hg=hit&&hit.closest('.ng');if(hg){document.querySelectorAll('#nav .ng').forEach(x=>{x.classList.toggle('open',x===hg);x.querySelector('.ngh').classList.toggle('has',x===hg)})}$('side').classList.remove('open');({home,adm,rep,me:profile,sp:stuProfile,rq:stuReq,pp:privacyPage,ev:eventsPage,um:usersPage,set:settingsPage,sch:schPage,tf:tuitionPage,fl:flagsPage,gd:guidePage,about:()=>contentPage('about'),cluster:()=>contentPage('cluster'),handbook:()=>contentPage('handbook'),facilities:()=>contentPage('facilities'),faq:()=>contentPage('faq'),ia:idArtPage,ce:careerPage,ac:acadPage,webm:websiteManagementPage,col:collegePage,colprog:collegeProgramsPage})[id]()}
 
 const csvCell=c=>{let s=String(c==null?'':c);if(/^[=+\-@\t\r]/.test(s))s="'"+s;else if(/^(0\d+|\d{11,})$/.test(s))return '="'+s+'"';return '"'+s.split('"').join('""')+'"'};
 const act={out:()=>{clearInterval(CD);if($('idm'))$('idm').remove();try{google.script.run.logout(S.token)}catch(e){}S.token=null;$('app').classList.add('hidden');const m=document.createElement('div');m.className='mod';m.innerHTML='<div style="max-width:430px;padding:32px;text-align:center"><h3 style="color:var(--navy);margin-bottom:8px">You have been signed out</h3><p style="color:var(--mut)">For your security, please refresh the page before signing in again.</p><div><button class="btn" onclick="location.reload()" style="margin-top:8px">Refresh page</button></div></div>';document.body.appendChild(m)},
@@ -1183,6 +1183,7 @@ act.save=()=>{collect(S.t);(S.nm&&S.t===S.nm)?persistNM():persist()};
 I.book=ic('M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14zM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5');
 I.help=ic('M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01');
 I.bldg=ic('M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 10h.01M15 10h.01');
+I.cap=ic('M22 10L12 5 2 10l10 5 10-5zM6 12.6V17c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.4');
 const CHEV=ic('M6 9l6 6 6-6');
 function menuFor(){
  const F=FULL();
@@ -1191,6 +1192,7 @@ function menuFor(){
  if(A())return[
   ...(F?[{g:'Overview',i:I.home,items:[['home','Dashboard',I.home],['rep','Analytics & Reports',I.rep]]}]:[['home','Dashboard',I.home]]),
   {g:'Operations & Management',i:I.adm,items:[['adm','Admission Operations',I.adm],['fl','Holds Management',I.flag],['sch','Scholarships',I.sch],['tf','Schedule of Fees',I.tf]]},
+  ...(F?[{g:'College',i:I.cap,items:[['col','College Roster',I.cap],['colprog','Programs & Courses',I.book]]}]:[]),
   {g:'Institutional Resources',i:I.book,items:[...guides,...(F?[['gd','Enrollment Guide',I.rep]]:[])]},
   {g:'Communication',i:I.mega,items:[['ev','Campus Bulletin',I.cal],['faq','Help Center & FAQs',I.help]]},
   ...(SYS()?[{g:'System Administration',i:I.cal,items:[['um','User Management',I.users],['set','Enrollment Settings',I.cal],['ia','ID Artwork',I.sch]]}]:[]),
