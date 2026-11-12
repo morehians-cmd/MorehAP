@@ -1418,7 +1418,8 @@ document.addEventListener('change',e=>{if(e.target.id!=='abf')return;const f=e.t
 const SBK='mrh_sb',sbPref=()=>{try{return localStorage.getItem(SBK)}catch(e){return null}};
 function sbAria(){const m=$('menu');if(!m)return;const c=document.body.classList.contains('sbc'),w=innerWidth;
  m.setAttribute('aria-expanded',String(w<1024?$('side').classList.contains('open'):!c));m.innerHTML=(w>=1024&&!c)?'&laquo;':'&#9776;'}
-function sbApply(){const w=innerWidth;let c=false;if(w>=1024){$('side').classList.remove('open')}
+function sbApply(){const w=innerWidth;if(w>=1024){$('side').classList.remove('open')}
+ const c=w>=1024&&sbPref()==='collapsed';
  document.body.classList.toggle('sbc',c);flyClose();tipHide();sbAria()}
 act.menu=()=>{if(innerWidth>=1024){const c=!document.body.classList.contains('sbc');try{localStorage.setItem(SBK,c?'collapsed':'expanded')}catch(e){}sbApply()}
  else{$('side').classList.toggle('open');sbAria()}};

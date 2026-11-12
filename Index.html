@@ -1527,8 +1527,21 @@ body .wnav .btn{flex:1 1 40%;justify-content:center}
 #app{--ma-navy:#0f2c56;--ma-blue:#2563eb;--ma-orange:#f7941d;--ma-line:#e4eaf3;--ma-mut:#64748b}
 
 /* --- sidebar --- */
-aside{width:232px!important;background:linear-gradient(180deg,#0c2140 0%,#071427 100%)!important;padding:0 0 10px!important;border-right:0!important;--sbw:232px}
-@media(min-width:901px){main{margin-left:232px!important}}
+aside{width:256px!important;background:linear-gradient(180deg,#0c2140 0%,#071427 100%)!important;padding:0 0 10px!important;border-right:0!important;--sbw:256px;transition:width .18s ease}
+@media(min-width:901px){main{margin-left:256px!important;transition:margin-left .18s ease}}
+body.sbc aside{width:80px!important;--sbw:80px}
+@media(min-width:901px){body.sbc main{margin-left:80px!important}}
+body.sbc .brand{padding:16px 0 12px!important}
+body.sbc .brand img{width:40px!important;height:40px!important}
+body.sbc .brand>div{display:none!important}
+body.sbc .nsrch{margin:8px 12px 10px!important;justify-content:center;padding:0!important}
+body.sbc .nsrch input{display:none!important}
+body.sbc .ngh{display:none!important}
+body.sbc .nav{justify-content:center!important;padding:10px 0!important;margin:2px 12px!important;gap:0!important}
+body.sbc .nav>span:not(.nb2){display:none!important}
+body.sbc .nav .nb2{position:absolute;top:-1px;right:-6px;margin:0!important;min-width:15px!important;padding:0 4px!important;font:700 9px/14px Inter,sans-serif!important}
+body.sbc .ng{position:relative}
+body.sbc .nav{position:relative}
 .brand{flex-direction:column!important;align-items:center!important;text-align:center!important;gap:6px!important;padding:20px 14px 10px!important}
 .brand img{width:58px!important;height:58px!important;border-radius:0!important;object-fit:contain!important;background:transparent!important;padding:0!important;box-shadow:none!important}
 .brand b{font:800 16.5px/1.25 'Plus Jakarta Sans',Montserrat,Inter,sans-serif!important;color:#fff!important;text-transform:none!important;letter-spacing:0!important;white-space:normal!important}
@@ -1598,90 +1611,141 @@ aside{width:232px!important;background:linear-gradient(180deg,#0c2140 0%,#071427
 #main:has(.ma3-dash)>.top .tl{margin-right:auto}
 @media(max-width:900px){#main:has(.ma3-dash)>.top .tl>#menu{display:inline-flex!important}}
 
-/* ===== dashboard ===== */
-.ma3-dash{display:grid;gap:16px;min-width:0;color:#12233f}
-.ma3-hero{position:relative;display:flex;align-items:center;min-height:116px;padding:22px 30px 22px 56px;border-radius:12px;overflow:hidden;color:#fff;background:linear-gradient(100deg,#0b2f6b 0%,#0b3a86 52%,#10509f 100%);box-shadow:0 8px 20px #0a2a5b1f;isolation:isolate}
-.ma3-hero:before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:#f7941d;z-index:2}
-.ma3-hero:after{content:"";position:absolute;right:0;top:0;bottom:0;width:46%;background:url("https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/Moreh%20College%20Under%20Blue%20Skies%20(2).png") center 45%/cover no-repeat;opacity:.6;-webkit-mask-image:linear-gradient(90deg,transparent,#000 42%);mask-image:linear-gradient(90deg,transparent,#000 42%)}
-.ma3-hero>div{position:relative;z-index:3;min-width:0}
-.ma3-hero h2{margin:0 0 6px;color:#fff;font:800 clamp(21px,2.1vw,29px)/1.15 Montserrat,Inter,sans-serif;letter-spacing:-.01em}
-.ma3-hero p{margin:0;color:#e6efff;font-size:14px}
-.ma3-hero em{display:block;margin-top:7px;color:#cfe0ff;font:italic 500 13px Georgia,serif}
-.ma3-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-.ma3-kpi{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:13px;padding:16px;border:1px solid transparent;border-radius:12px;text-align:left;cursor:pointer;font:inherit;min-width:0;transition:transform .15s,box-shadow .15s}
-.ma3-kpi:hover{transform:translateY(-2px);box-shadow:0 10px 22px #0a2a5b14}
-.ma3-kpi.blue{background:#e8f0fe;border-color:#cfdefb}
-.ma3-kpi.orange{background:#fff2e3;border-color:#ffdcb8}
-.ma3-kpi.green{background:#e7f7ef;border-color:#c3ecd7}
-.ma3-kpi.purple{background:#efe9fd;border-color:#d8ccf8}
-.ma3-kpi-ic{display:grid;place-items:center;width:46px;height:46px;border-radius:50%;color:#fff;flex:none}
-.ma3-kpi.blue .ma3-kpi-ic{background:#2563eb}
-.ma3-kpi.orange .ma3-kpi-ic{background:#f7941d}
-.ma3-kpi.green .ma3-kpi-ic{background:#16a34a}
-.ma3-kpi.purple .ma3-kpi-ic{background:#7c3aed}
-.ma3-kpi-ic svg{width:23px;height:23px}
-.ma3-kpi small{display:block;color:#3b4d6b;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ma3-kpi strong{display:block;color:#0f2c56;font-size:29px;line-height:1.15;font-weight:800;letter-spacing:-.01em}
-.ma3-kpi em{display:block;margin-top:2px;color:#5b7392;font-size:11px;font-style:normal;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ma3-kpi-go{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#ffffffc4;color:#3b4d6b;font-size:16px;line-height:1;flex:none}
-.ma3-row{display:grid;grid-template-columns:minmax(0,1.34fr) minmax(0,1fr) minmax(0,.92fr);gap:16px;align-items:stretch}
-.ma3-row2{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1.18fr) minmax(0,.9fr);gap:16px;align-items:stretch}
-.ma3-panel{background:#fff;border:1px solid var(--ma-line);border-radius:12px;padding:15px 18px;min-width:0;box-shadow:0 1px 3px #0a2a5b0a}
-.ma3-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
-.ma3-head h3{display:flex;align-items:center;gap:9px;margin:0;color:#0f2c56;font-size:15.5px;font-weight:800}
-.ma3-head h3 svg{width:19px;height:19px;color:#2563eb;flex:none}
-.ma3-head a{color:#2563eb;font-size:11.5px;font-weight:700;text-decoration:none;white-space:nowrap}
-.ma3-head a:hover{text-decoration:underline}
-.ma3-chart{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;height:198px}
-.ma3-yaxis{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;padding-bottom:22px;color:#8798ad;font-size:10.5px;line-height:1}
-.ma3-plot{position:relative;min-width:0}
-.ma3-grid{position:absolute;inset:0 0 22px 0;background:repeating-linear-gradient(to top,#e8eef6 0 1px,transparent 1px 25%)}
-.ma3-bars{position:absolute;inset:0 0 22px 0;display:flex;align-items:flex-end;gap:clamp(2px,.55vw,8px);padding:0 4px 0 2px}
-.ma3-bar{flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:5px;position:relative}
-.ma3-bar b{position:relative;z-index:1;font-size:10px;font-weight:700;color:#1e3a63;letter-spacing:-.02em}
-.ma3-bar i{display:block;width:min(26px,72%);border-radius:3px 3px 0 0;min-height:2px}
-.ma3-bar small{position:absolute;bottom:-21px;left:-3px;right:-3px;text-align:center;color:#5b6c85;font-size:9.5px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ma3-status{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:16px}
-.ma3-donut{position:relative;width:148px;height:148px;flex:none;border-radius:50%}
-.ma3-donut:before{content:"";position:absolute;inset:25%;border-radius:50%;background:#fff}
-.ma3-donut>div{position:absolute;inset:0;display:grid;place-content:center;text-align:center;color:#12233f}
-.ma3-donut b{display:block;font-size:22px;font-weight:800;line-height:1.1}
-.ma3-donut small{font-size:10.5px;color:#64748b}
-.ma3-legend{display:grid;gap:9px;min-width:0}
-.ma3-legend>div{display:grid;grid-template-columns:9px minmax(0,1fr);gap:8px;align-items:start;font-size:12px}
-.ma3-legend i{width:9px;height:9px;border-radius:50%;margin-top:4px}
-.ma3-legend b{display:block;color:#0f2c56;font-weight:700;line-height:1.25}
-.ma3-legend span{color:#64748b;font-size:10.5px}
-.ma3-campus{position:relative;margin:0;border-radius:12px;overflow:hidden;min-height:198px;background:#0a2a5b;border:1px solid var(--ma-line)}
-.ma3-campus img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center 52%}
-.ma3-campus figcaption{position:absolute;left:0;right:0;bottom:0;padding:12px 16px 10px;background:linear-gradient(180deg,#0a2a5b00,#071b38e6 62%);color:#fff}
-.ma3-campus b{display:block;font:italic 700 18px/1.2 Georgia,serif}
-.ma3-campus span{font-size:10.5px;color:#d7e5fb}
-.ma3-attn-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;padding:8px 6px;border:0;border-radius:8px;background:none;cursor:pointer;text-align:left;font:inherit}
-.ma3-attn-row:hover{background:#f5f8fd}
-.ma3-pill{min-width:36px;padding:3px 9px;border-radius:7px;text-align:center;font-size:12px;font-weight:700}
-.ma3-pill.a{background:#fde7e9;color:#c0392b}
-.ma3-pill.b{background:#fdeccd;color:#a86810}
-.ma3-pill.c{background:#e6f0ff;color:#1a56b8}
-.ma3-pill.d{background:#eee9fd;color:#6d45c4}
-.ma3-attn-row .lbl{font-size:12.5px;color:#22385c;min-width:0}
-.ma3-attn-row .go{color:#a9b8cc;font-size:16px}
-.ma3-act-row{display:grid;grid-template-columns:9px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eef2f8}
-.ma3-act-row:last-child{border-bottom:0}
-.ma3-act-row i{width:9px;height:9px;border-radius:50%}
-.ma3-act-row b{display:block;color:#22385c;font-size:12.5px;font-weight:600;line-height:1.3}
-.ma3-act-row small{display:block;color:#8496ad;font-size:10.5px}
-.ma3-act-row time{color:#93a4b9;font-size:10.5px;white-space:nowrap}
-.ma3-qa-wrap{display:flex;flex-direction:column}
-.ma3-qa{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px;align-content:start}
-.ma3-qa button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:84px;padding:10px 5px;border:1px solid #e4ebf6;border-radius:10px;background:#f7faff;color:#1c3357;font:600 10.5px/1.3 Inter,sans-serif;cursor:pointer;text-align:center}
-.ma3-qa button:hover{background:#eef5ff;border-color:#bfd7fb}
-.ma3-qa svg{width:21px;height:21px;color:#2563eb}
-.ma3-qa span{line-height:1.25;white-space:normal;max-width:100%}
-.ma3-empty{padding:14px 10px;border:1px dashed #dbe3ee;border-radius:9px;background:#f9fbfe;color:#7a8aa1;font-size:11px;line-height:1.6;text-align:center}
-@media(max-width:1240px){.ma3-row{grid-template-columns:1.3fr 1fr}.ma3-row>.ma3-campus{grid-column:1/-1;min-height:150px}.ma3-row2{grid-template-columns:1fr 1fr}.ma3-row2>.ma3-qa-wrap{grid-column:1/-1}.ma3-kpis{grid-template-columns:1fr 1fr}}
-@media(max-width:1000px){.ma3-kpis{grid-template-columns:1fr 1fr}.ma3-row,.ma3-row2{grid-template-columns:1fr}.ma3-row>.ma3-campus,.ma3-row2>.ma3-qa-wrap{grid-column:auto}}
-@media(max-width:620px){.ma3-kpis{grid-template-columns:1fr}.ma3-hero{padding:18px 16px 18px 30px}.ma3-hero:after{width:60%;opacity:.45}.ma3-qa{grid-template-columns:repeat(2,1fr)}.ma3-status{grid-template-columns:1fr;justify-items:center;gap:12px}}
+/* ===== admissions dashboard (office specification) ===== */
+.ma-dash-banner{display:block;background:#062a5e;line-height:0;overflow:hidden}
+.ma-dash-banner img{display:block;width:100%;height:auto}
+.ds-page{display:grid;gap:15px;min-width:0;color:#12233f}
+
+/* welcome banner */
+.ds-welcome{position:relative;display:flex;align-items:center;justify-content:space-between;gap:22px;padding:24px 28px;border-radius:14px;overflow:hidden;color:#fff;background:#0b2f6b url('https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/Banner%20Background%20copy.jpg') center/cover no-repeat}
+.ds-welcome:before{content:"";position:absolute;inset:0;background:linear-gradient(100deg,#062a5ef2 0%,#0b3a86d9 54%,#0b3a8673 100%)}
+.ds-welcome-copy,.ds-avatar{position:relative;z-index:1;min-width:0}
+.ds-welcome h2{margin:0 0 6px;font:800 clamp(20px,2vw,28px)/1.15 Montserrat,Inter,sans-serif;color:#fff;letter-spacing:-.01em}
+.ds-welcome p{margin:0;color:#e6efff;font-size:13.5px}
+.ds-welcome-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+.ds-welcome-meta span{padding:4px 11px;border-radius:999px;background:#ffffff26;font:600 11.5px Inter,sans-serif;white-space:nowrap}
+.ds-avatar{width:84px;height:84px;border-radius:50%;background:#fff;color:#0b2f6b;display:grid;place-items:center;font:800 28px Inter,sans-serif;flex:none;box-shadow:0 8px 20px #062a5e55}
+
+/* filters */
+.ds-filters{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--ma-line);border-radius:12px;background:#fff}
+.ds-sy{display:grid;padding-right:14px;border-right:1px solid var(--ma-line);line-height:1.15}
+.ds-sy b{font:800 14.5px Inter,sans-serif;color:#0f2c56}
+.ds-sy span{font:600 10px Inter,sans-serif;color:#8496ad;text-transform:uppercase;letter-spacing:.05em}
+.ds-filter{display:flex;flex-direction:column;gap:3px;min-width:148px}
+.ds-filter>span{font:600 10px Inter,sans-serif;color:#8496ad;text-transform:uppercase;letter-spacing:.04em}
+.ds-filter select{height:34px;border:1px solid #d9e2ef;border-radius:8px;background:#fbfcfe;color:#12233f;font:600 12.5px Inter,sans-serif;padding:0 8px;cursor:pointer}
+.ds-btn{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 14px;border:1px solid #2563eb;border-radius:8px;background:#2563eb;color:#fff;font:700 12px Inter,sans-serif;cursor:pointer}
+.ds-btn:hover{filter:brightness(1.06)}
+.ds-btn svg{width:15px;height:15px}
+.ds-btn.ghost{background:#fff;color:#2563eb;border-color:#cfdffb}
+.ds-updated{margin-left:auto;display:flex;align-items:center;gap:11px;color:#8496ad;font:500 11.5px Inter,sans-serif}
+
+/* six bento cards */
+.ds-cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.ds-card{display:flex;gap:11px;align-items:flex-start;padding:14px 13px;border:1px solid transparent;border-radius:12px;text-align:left;cursor:pointer;font:inherit;min-width:0;transition:transform .15s,box-shadow .15s}
+.ds-card:hover{transform:translateY(-2px);box-shadow:0 10px 22px #0a2a5b14}
+.ds-card-ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;flex:none}
+.ds-card-ic svg{width:17px;height:17px}
+.ds-card-body{min-width:0}
+.ds-card small{display:block;font:600 10.5px Inter,sans-serif;color:#4b6b95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ds-card b{display:block;font:800 25px/1.15 Inter,sans-serif;color:#0f2c56;letter-spacing:-.02em}
+.ds-card em{display:block;font:500 10px Inter,sans-serif;color:#7a8aa1;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ds-card.blue{background:#e8f0fe;border-color:#cfdefb}.ds-card.blue .ds-card-ic{background:#2563eb}
+.ds-card.green{background:#e7f7ef;border-color:#c3ecd7}.ds-card.green .ds-card-ic{background:#16a34a}
+.ds-card.orange{background:#fff2e3;border-color:#ffdcb8}.ds-card.orange .ds-card-ic{background:#f7941d}
+.ds-card.amber{background:#fff8e3;border-color:#f5e3b0}.ds-card.amber .ds-card-ic{background:#d97706}
+.ds-card.red{background:#fdeced;border-color:#f6cfd2}.ds-card.red .ds-card-ic{background:#dc2626}
+.ds-card.slate{background:#eef2f8;border-color:#dbe4f0}.ds-card.slate .ds-card-ic{background:#64748b}
+
+/* progress */
+.ds-progress{display:flex;align-items:center;gap:24px;padding:18px 22px;border:1px solid var(--ma-line);border-radius:14px;background:#fff}
+.ds-ring{width:104px;height:104px;border-radius:50%;background:conic-gradient(#16a34a calc(var(--p)*1%),#e3ecf9 0);display:grid;place-items:center;flex:none}
+.ds-ring>div{width:76px;height:76px;border-radius:50%;background:#fff;display:grid;place-content:center;text-align:center}
+.ds-ring b{font:800 20px Inter,sans-serif;color:#0f2c56;line-height:1}
+.ds-ring span{font:600 9px Inter,sans-serif;color:#8496ad;text-transform:uppercase;letter-spacing:.05em}
+.ds-progress-copy h3{margin:0 0 4px;font:800 15.5px Inter,sans-serif;color:#0f2c56}
+.ds-progress-copy p{margin:0;color:#64748b;font-size:12px;max-width:78ch;line-height:1.55}
+.ds-progress-stats{display:flex;flex-wrap:wrap;gap:24px;margin-top:13px}
+.ds-progress-stats div{display:grid}
+.ds-progress-stats b{font:800 20px Inter,sans-serif;color:#0f2c56;line-height:1.1}
+.ds-progress-stats span{font:600 10px Inter,sans-serif;color:#8496ad;text-transform:uppercase;letter-spacing:.04em}
+
+/* doughnuts */
+.ds-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.ds-panel{background:#fff;border:1px solid var(--ma-line);border-radius:14px;padding:16px 18px;min-width:0}
+.ds-panel>header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.ds-panel>header h3{display:flex;align-items:center;gap:8px;margin:0;font:800 14.5px Inter,sans-serif;color:#0f2c56}
+.ds-panel>header h3 svg{width:17px;height:17px;color:#2563eb}
+.ds-panel>header a{color:#2563eb;font:700 11.5px Inter,sans-serif;text-decoration:none}
+.ds-panel>header a:hover{text-decoration:underline}
+.ds-donut-card{display:flex;flex-direction:column}
+.ds-donut-card>header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:12px}
+.ds-donut-card h3{margin:0;font:800 14.5px Inter,sans-serif;color:#0f2c56}
+.ds-donut-card header small{color:#8496ad;font-size:10.5px;text-align:right}
+.ds-donut-wrap{flex:1;display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center;align-content:center}
+.ds-donut{width:132px;height:132px;border-radius:50%;display:grid;place-items:center;flex:none}
+.ds-donut>div{width:86px;height:86px;border-radius:50%;background:#fff;display:grid;place-content:center;text-align:center}
+.ds-donut b{font:800 18px Inter,sans-serif;color:#0f2c56;line-height:1.05}
+.ds-donut span{font:600 9px Inter,sans-serif;color:#8496ad}
+.ds-legend{display:grid;gap:5px;min-width:0;align-content:start}
+.ds-leg{display:grid;grid-template-columns:9px minmax(0,1fr);gap:8px;align-items:start}
+.ds-leg i{width:9px;height:9px;border-radius:3px;margin-top:4px}
+.ds-leg b{display:block;font:700 12px Inter,sans-serif;color:#22385c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ds-leg small{color:#8496ad;font-size:10.5px}
+
+/* per-level cards */
+.ds-levels-wrap>header{margin:2px 0 10px}
+.ds-levels-wrap>header h3{margin:0;font:800 15.5px Inter,sans-serif;color:#0f2c56}
+.ds-levels-wrap>header small{color:#8496ad;font-size:11.5px}
+.ds-levels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.ds-lvl{background:#fff;border:1px solid var(--ma-line);border-radius:14px;padding:14px 16px}
+.ds-lvl>header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:9px;margin-bottom:8px;border-bottom:1px solid #eef2f8}
+.ds-lvl h4{margin:0;font:800 13.5px Inter,sans-serif;color:#0f2c56}
+.ds-lvl>header b{font:800 20px Inter,sans-serif;color:#2563eb;line-height:1}
+.ds-lvl-kids{display:grid;gap:4px}
+.ds-lvl-row{display:flex;justify-content:space-between;gap:10px;font:500 12px Inter,sans-serif;color:#4b6b95}
+.ds-lvl-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ds-lvl-row b{color:#22385c}
+.ds-lvl-empty{color:#93a4b9;font-size:11.5px}
+
+/* registrations, quick actions, attention, activity */
+.ds-two{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:14px;align-items:start}
+.ds-table-wrap{overflow:auto}
+.ds-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.ds-table th{padding:7px 8px;border-bottom:1px solid #e4eaf3;color:#8496ad;font:700 10px Inter,sans-serif;text-transform:uppercase;letter-spacing:.04em;text-align:left;white-space:nowrap}
+.ds-table td{padding:8px;border-bottom:1px solid #f1f5fb;color:#22385c;vertical-align:top}
+.ds-table tr:last-child td{border-bottom:0}
+.ds-table td b{display:block;font-weight:600}
+.ds-table td small{display:block;color:#93a4b9;font-size:10.5px}
+.ds-badge{display:inline-block;padding:2px 9px;border-radius:999px;font:700 10.5px Inter,sans-serif;white-space:nowrap}
+.ds-badge.ok{background:#e7f7ef;color:#15803d}
+.ds-badge.pend{background:#fff8e3;color:#a16207}
+.ds-badge.warn{background:#fff2e3;color:#b45309}
+.ds-badge.bad{background:#fdeced;color:#b91c1c}
+.ds-badge.mut{background:#eef2f8;color:#475569}
+.ds-quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.ds-quick button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:72px;padding:10px 8px;border:1px solid #e4ebf6;border-radius:10px;background:#f8fbff;color:#1c3357;font:600 10.5px/1.25 Inter,sans-serif;cursor:pointer;text-align:center}
+.ds-quick button:hover{background:#eef5ff;border-color:#bfd7fb}
+.ds-quick svg{width:20px;height:20px;color:#2563eb}
+.ds-attn-counts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.ds-attn-counts div{padding:9px 11px;border-radius:10px;background:#f6f9fe;border:1px solid #e8eff9}
+.ds-attn-counts b{display:block;font:800 18px Inter,sans-serif;color:#0f2c56}
+.ds-attn-counts span{font:600 10px Inter,sans-serif;color:#8496ad;text-transform:uppercase;letter-spacing:.03em}
+.ds-attn-list{display:grid;gap:6px}
+.ds-attn-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr) minmax(0,1.4fr);gap:10px;padding:7px 8px;border-bottom:1px solid #f1f5fb;font-size:12px;color:#22385c}
+.ds-attn-row b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ds-attn-row span,.ds-attn-row em{color:#7a8aa1;font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ds-act-row{display:grid;grid-template-columns:9px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #f1f5fb}
+.ds-act-row:last-child{border-bottom:0}
+.ds-act-row i{width:9px;height:9px;border-radius:50%;background:#2563eb}
+.ds-act-row b{display:block;font:600 12px Inter,sans-serif;color:#22385c}
+.ds-act-row small{display:block;color:#93a4b9;font-size:10.5px}
+.ds-act-row time{color:#93a4b9;font-size:10.5px;white-space:nowrap}
+.ds-empty{padding:18px 12px;border:1px dashed #dbe3ee;border-radius:10px;background:#f9fbfe;color:#7a8aa1;font-size:12px;text-align:center}
+@media(max-width:1400px){.ds-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1100px){.ds-charts{grid-template-columns:1fr}.ds-levels{grid-template-columns:repeat(2,minmax(0,1fr))}.ds-two{grid-template-columns:1fr}}
+@media(max-width:760px){.ds-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.ds-levels{grid-template-columns:1fr}.ds-attn-counts{grid-template-columns:1fr 1fr}.ds-progress{flex-direction:column;align-items:flex-start}.ds-donut-wrap{grid-template-columns:1fr;justify-items:center}.ds-updated{margin-left:0}}
+@media(max-width:520px){.ds-cards{grid-template-columns:1fr}.ds-attn-row{grid-template-columns:1fr}.ds-avatar{display:none}}
 </style>
 </head>
 <body>
@@ -1726,18 +1790,7 @@ aside{width:232px!important;background:linear-gradient(180deg,#0c2140 0%,#071427
  </main>
 </div>
 <div id="app" class="hidden"><button class="skip" data-act="skip">Skip to main content</button><aside id="side" role="navigation" aria-label="Main Navigation"><div class="brand"><img src="https://drive.google.com/thumbnail?id=1OlkaaLh1ZaXg7sjfLe0ubDgrlNXiPbQF&sz=w160" alt=""><div><b>Moreh Academy</b><small id="role"></small></div></div><div id="nav"></div><div class="me"><div id="who"></div><button class="nav" data-act="out" style="margin-top:8px"></button></div></aside><div id="sbbd" data-act="menu"></div>
-<main id="main"><header class="ma-portal-masthead" aria-label="Moreh Academy institutional header">
-  <div class="ma-mast-brand">
-    <div class="ma-mast-logos">
-      <button type="button" class="ma-mast-logo" data-act="nav" data-v="about" aria-label="Moreh Global Innovative College"><img src="https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/mgic-logo.png" alt="Moreh Global Innovative College"></button>
-      <button type="button" class="ma-mast-logo" data-act="nav" data-v="about" aria-label="Moreh Academy"><img src="https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/moreh-academy-logo.png" alt="Moreh Academy"></button>
-      <button type="button" class="ma-mast-logo" data-act="nav" data-v="about" aria-label="Moreh College"><img src="https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/moreh-college-logo.png" alt="Moreh College"></button>
-    </div>
-    <div class="ma-mast-photo"><img class="ma-portal-campus" src="https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/Moreh%20College%20Under%20Blue%20Skies%20(2).png" alt="Moreh Academy campus under a blue sky"></div>
-  </div>
-  <svg class="ma-mast-curve" viewBox="0 0 1440 26" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 26 C 430 1, 1010 1, 1440 26 L1440 26 L0 26 Z" fill="#f7941d"></path></svg>
-  <div class="ma-mast-motto"><span>Learn &middot; Grow &middot; Excel</span></div>
-</header><div class="top" role="banner"><div class="tl" style="display:flex;gap:14px;align-items:center"><button id="menu" data-act="menu" aria-label="Toggle navigation" aria-controls="side" aria-expanded="true" title="Toggle navigation">&#9776;</button><img class="tlogo" src="https://drive.google.com/thumbnail?id=1OlkaaLh1ZaXg7sjfLe0ubDgrlNXiPbQF&sz=w160" alt=""><div><h1 id="title"></h1><p id="sub"></p></div><span class="ma-top-date" id="maTopDate"></span></div><div id="gsw" class="gsw hidden"><input id="gs" type="text" autocomplete="off" placeholder="Search" aria-label="Global search" role="combobox" aria-autocomplete="list" aria-controls="gsr" aria-expanded="false"><div id="gsr" class="gsr hidden" role="listbox"></div></div><div class="tr" style="display:flex;gap:12px;align-items:center;position:relative"><button class="av" id="gsb" data-act="gsopen" aria-label="Search" title="Search" style="background:#fff;color:var(--navy);border:1px solid var(--line)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"/></svg></button><span id="rbd" class="rbd hidden"></span><span class="ma-top-bell" style="position:relative"><button class="av" style="background:#fff;color:var(--navy);border:1px solid var(--line)" data-act="bell" title="Notifications" aria-label="Notifications">&#128276;</button><span id="nb" class="hidden" style="position:absolute;top:-4px;right:-4px;background:#d93025;color:#fff;border-radius:999px;min-width:20px;height:20px;font:700 11px/20px Inter,sans-serif;text-align:center;padding:0 5px"></span></span><div class="dd hidden" id="np" style="width:340px;right:56px;max-height:70vh;overflow:auto"></div><div class="uchip" data-act="dd"><b id="uname"></b><small id="urole"></small></div><button class="av" id="av" data-act="dd" title="Account" aria-label="Account menu" aria-haspopup="true" aria-expanded="false"></button><div class="dd hidden" id="dd" role="menu"></div></div></div><div id="view" tabindex="-1"></div><footer id="ftr" class="ftr"><div class="fl1"><span>&copy; <span id="fyr"></span> Moreh Academy. All rights reserved.</span><span id="fst" class="fst on" style="display:none"><i></i><span>Online</span></span></div><div class="fl1"><a href="javascript:void(0)" data-act="nav" data-v="pp">Privacy Policy</a><span class="ma-fsep">|</span><a href="javascript:void(0)" data-act="nav" data-v="pp">Terms of Use</a><span class="ma-fsep">|</span><a href="javascript:void(0)" data-act="nav" data-v="faq">Help</a></div></footer></main><nav id="bnav" aria-label="Quick navigation"></nav></div>
+<main id="main"><header class="ma-dash-banner" aria-label="Moreh Academy institutional banner"><img src="https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/Top%20Banner.jpg" alt="Moreh Academy, Moreh Global Innovative College and Moreh College"></header><div class="top" role="banner"><div class="tl" style="display:flex;gap:14px;align-items:center"><button id="menu" data-act="menu" aria-label="Toggle navigation" aria-controls="side" aria-expanded="true" title="Toggle navigation">&#9776;</button><img class="tlogo" src="https://drive.google.com/thumbnail?id=1OlkaaLh1ZaXg7sjfLe0ubDgrlNXiPbQF&sz=w160" alt=""><div><h1 id="title"></h1><p id="sub"></p></div><span class="ma-top-date" id="maTopDate"></span></div><div id="gsw" class="gsw hidden"><input id="gs" type="text" autocomplete="off" placeholder="Search" aria-label="Global search" role="combobox" aria-autocomplete="list" aria-controls="gsr" aria-expanded="false"><div id="gsr" class="gsr hidden" role="listbox"></div></div><div class="tr" style="display:flex;gap:12px;align-items:center;position:relative"><button class="av" id="gsb" data-act="gsopen" aria-label="Search" title="Search" style="background:#fff;color:var(--navy);border:1px solid var(--line)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"/></svg></button><span id="rbd" class="rbd hidden"></span><span class="ma-top-bell" style="position:relative"><button class="av" style="background:#fff;color:var(--navy);border:1px solid var(--line)" data-act="bell" title="Notifications" aria-label="Notifications">&#128276;</button><span id="nb" class="hidden" style="position:absolute;top:-4px;right:-4px;background:#d93025;color:#fff;border-radius:999px;min-width:20px;height:20px;font:700 11px/20px Inter,sans-serif;text-align:center;padding:0 5px"></span></span><div class="dd hidden" id="np" style="width:340px;right:56px;max-height:70vh;overflow:auto"></div><div class="uchip" data-act="dd"><b id="uname"></b><small id="urole"></small></div><button class="av" id="av" data-act="dd" title="Account" aria-label="Account menu" aria-haspopup="true" aria-expanded="false"></button><div class="dd hidden" id="dd" role="menu"></div></div></div><div id="view" tabindex="-1"></div><footer id="ftr" class="ftr"><div class="fl1"><span>&copy; <span id="fyr"></span> Moreh Academy. All rights reserved.</span><span id="fst" class="fst on" style="display:none"><i></i><span>Online</span></span></div><div class="fl1"><a href="javascript:void(0)" data-act="nav" data-v="pp">Privacy Policy</a><span class="ma-fsep">|</span><a href="javascript:void(0)" data-act="nav" data-v="pp">Terms of Use</a><span class="ma-fsep">|</span><a href="javascript:void(0)" data-act="nav" data-v="faq">Help</a></div></footer></main><nav id="bnav" aria-label="Quick navigation"></nav></div>
 <div id="load" class="hidden"><i></i></div><div id="toast" class="hidden" role="status" aria-live="polite"></div>
 <!-- Portal scripts are served from this repository (MorehAP@main) by jsDelivr, which returns them as application/javascript.
      Pushes here go live without editing this file; jsDelivr caches branch URLs for up to 12 hours, so a change may take that long to appear. -->

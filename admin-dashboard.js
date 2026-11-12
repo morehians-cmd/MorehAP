@@ -1,236 +1,270 @@
-/* Moreh Academy Admission Portal — administrator dashboard (approved mockup layout).
-   Loaded after public-homepage.js, so this is the single active dashboard renderer.
-
-   Data notes:
-   - The portal's Enrollment Status values are Enrolled / Not Enrolled / Temporary /
-     Cancelled / Transferred Out. There is no "Approved" or "Rejected" status, so the
-     KPI cards and the donut use the real status names and real counts.
-   - The caption under each KPI figure is a real percentage of the active school year's
-     records. Invented year-over-year deltas are never shown. */
+/* Admissions dashboard — built to the office specification.
+ *
+ * Layout order follows section 13 of the spec: welcome banner, filters, six bento
+ * cards, enrollment progress, four doughnut charts, per-level cards, recent
+ * registrations, quick actions, needs attention, recent activity.
+ *
+ * Every figure comes from dashboardSpec in one call; nothing here invents numbers.
+ */
 (function () {
-  var CDN = 'https://cdn.jsdelivr.net/gh/morehians-cmd/MorehAP@main/';
-  var CAMPUS = CDN + 'Moreh%20College%20Under%20Blue%20Skies%20(2).png';
+  var DS = { filters: { level: '', type: '', status: '' }, busy: false };
 
-  function svg(d) {
+  function ic(d) {
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
   }
-
-  var IC = {
-    people: svg('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'),
-    clock: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
-    check: svg('<circle cx="12" cy="12" r="9"/><path d="M8.4 12.4l2.6 2.6 4.6-5.2"/>'),
-    cap: svg('<path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12.6V17c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.4"/>'),
-    bars: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
-    pie: svg('<path d="M21.2 15.9A10 10 0 1 1 8.1 2.8"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>'),
-    alert: svg('<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>'),
-    bolt: svg('<path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/>'),
-    userPlus: svg('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>'),
-    users: svg('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>'),
-    gear: svg('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>')
+  var ICO = {
+    users: ic('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'),
+    check: ic('<circle cx="12" cy="12" r="9"/><path d="M8.4 12.4l2.6 2.6 4.6-5.2"/>'),
+    clock: ic('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+    x: ic('<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>'),
+    out: ic('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>'),
+    cap: ic('<path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12.6V17c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.4"/>'),
+    plus: ic('<path d="M12 5v14M5 12h14"/>'),
+    search: ic('<path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"/>'),
+    rep: ic('<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h8"/>'),
+    globe: ic('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/>'),
+    user: ic('<path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="8" r="4"/>'),
+    fee: ic('<path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h4"/>'),
+    alert: ic('<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>'),
+    pulse: ic('<path d="M3 12h4l3 8 4-16 3 8h4"/>'),
+    refresh: ic('<path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"/>')
   };
 
+  var escv = function (v) { return esc(v == null ? '' : String(v)); };
   var nf = function (n) { return Number(n || 0).toLocaleString('en-US'); };
-  var pc = function (n, t) { return t ? Math.round((n || 0) / t * 1000) / 10 + '%' : '0%'; };
-  var escv = function (v) { return esc(v == null ? '' : v); };
+  var pctOf = function (n, t) { return t ? Math.round((n || 0) / t * 100) : 0; };
 
-  function statusList(st) {
-    return [
-      { label: 'Enrolled', value: Number(st.enrolled || 0), color: '#2563eb' },
-      { label: 'Not Yet Enrolled', value: Number(st.pending || 0), color: '#f7941d' },
-      { label: 'Temporary', value: Number(st.temp || 0), color: '#7c3aed' },
-      { label: 'Cancelled', value: Number(st.cancelled || 0), color: '#ef4444' },
-      { label: 'Transferred Out', value: Number(st.transferred || 0), color: '#94a3b8' }
+  function greeting() {
+    var h = new Date().getHours();
+    return h < 12 ? 'Good Morning' : h < 18 ? 'Good Afternoon' : 'Good Evening';
+  }
+  function displayName() {
+    var raw = (S.user && S.user.FullName) || 'Administrator';
+    if (typeof tc === 'function') { try { return tc(raw); } catch (e) { return raw; } }
+    return raw;
+  }
+  function initials() {
+    var parts = String(displayName()).replace(/,/g, ' ').trim().split(/\s+/);
+    return ((parts[0] || 'A')[0] + ((parts[1] || '')[0] || '')).toUpperCase();
+  }
+
+  /* ---------- doughnut ---------- */
+  var DONUT_COLORS = ['#2563eb', '#f7941d', '#16a34a', '#7c3aed', '#ef4444', '#0ea5e9', '#f59e0b', '#14b8a6', '#8b5cf6', '#64748b', '#94a3b8'];
+
+  function donut(title, sub, rows, total, unit) {
+    var sum = rows.reduce(function (a, r) { return a + (r.count || 0); }, 0);
+    var acc = 0, segs = [];
+    rows.forEach(function (r, i) {
+      if (!r.count) return;
+      var from = acc / sum * 360; acc += r.count;
+      segs.push(DONUT_COLORS[i % DONUT_COLORS.length] + ' ' + from.toFixed(2) + 'deg ' + (acc / sum * 360).toFixed(2) + 'deg');
+    });
+    var bg = segs.length ? 'conic-gradient(' + segs.join(',') + ')' : '#e8eef7';
+    var legend = rows.map(function (r, i) {
+      return '<div class="ds-leg"><i style="background:' + DONUT_COLORS[i % DONUT_COLORS.length] + '"></i>' +
+        '<span><b>' + escv(r.label) + '</b><small>' + nf(r.count) + ' &middot; ' + pctOf(r.count, sum) + '%</small></span></div>';
+    }).join('');
+    return '<section class="ds-panel ds-donut-card">' +
+      '<header><h3>' + escv(title) + '</h3><small>' + escv(sub) + '</small></header>' +
+      '<div class="ds-donut-wrap"><div class="ds-donut" style="background:' + bg + '"><div><b>' + nf(total) + '</b><span>' + escv(unit) + '</span></div></div>' +
+      '<div class="ds-legend">' + legend + '</div></div></section>';
+  }
+
+  /* ---------- page ---------- */
+  function render(d) {
+    var host = $('view');
+    if (!host) return;
+    var p = d.progress || {}, ch = d.charts || {};
+
+    var chips = [
+      { k: 'level', label: 'Academic level', opts: ['Preschool', 'Elementary', 'Junior High', 'SHS 11', 'SHS 12', 'College'] },
+      { k: 'type', label: 'Student type', opts: ['New', 'Old'] },
+      { k: 'status', label: 'Enrollment status', opts: ['Enrolled', 'Not Enrolled', 'Temporary', 'Cancelled', 'Transferred Out'] }
     ];
-  }
 
-  function kpiCard(tone, icon, label, value, note, action, filter) {
-    return '<button type="button" class="ma3-kpi ' + tone + '" data-act="' + action + '" data-v="' + escv(filter) + '">' +
-      '<span class="ma3-kpi-ic">' + icon + '</span>' +
-      '<span><small>' + escv(label) + '</small><strong>' + nf(value) + '</strong><em>' + escv(note) + '</em></span>' +
-      '<span class="ma3-kpi-go" aria-hidden="true">&#8250;</span></button>';
-  }
+    var filterBar =
+      '<section class="ds-filters">' +
+        '<div class="ds-sy"><b>' + escv(d.sy) + '</b><span>School Year</span></div>' +
+        chips.map(function (c) {
+          var picked = DS.filters[c.k] || '';
+          var opts = ['<option value="">All</option>'].concat(c.opts.map(function (o) {
+            return '<option value="' + escv(o) + '"' + (picked === o ? ' selected' : '') + '>' + escv(o) + '</option>';
+          })).join('');
+          return '<label class="ds-filter"><span>' + escv(c.label) + '</span><select data-ds-filter="' + c.k + '">' + opts + '</select></label>';
+        }).join('') +
+        '<button type="button" class="ds-btn ghost" data-ds="clear">Clear filters</button>' +
+        '<div class="ds-updated"><span>Updated ' + escv(d.updated) + '</span>' +
+          '<button type="button" class="ds-btn" data-ds="refresh">' + ICO.refresh + 'Refresh</button></div>' +
+      '</section>';
 
-  function shortGrade(g) {
-    return String(g).replace(/^Grade\s+/, 'G').replace(/^Kinder\s+/, 'K').replace(/^Nursery$/, 'Nurs');
-  }
-
-  function chartHTML(rows) {
-    if (!rows.length) return '<div class="ma3-empty">No grade-level records for this school year yet.</div>';
-    var max = Math.max.apply(null, rows.map(function (r) { return r.value; }).concat([1]));
-    var step = Math.max(1, Math.ceil(max / 4 / 10) * 10);
-    var top = Math.ceil(max / step) * step;
-    var ticks = [1, 0.75, 0.5, 0.25, 0].map(function (f) { return Math.round(top * f); });
-    var bars = rows.map(function (r, i) {
-      var h = Math.max(2, Math.round(r.value / top * 100));
-      var col = i % 2 ? 'linear-gradient(180deg,#ffb160,#f1872d)' : 'linear-gradient(180deg,#4b91f5,#1d54b8)';
-      return '<div class="ma3-bar" title="' + escv(r.label) + ': ' + nf(r.value) + '"><b>' + nf(r.value) + '</b>' +
-        '<i style="height:' + h + '%;background:' + col + '"></i><small>' + escv(shortGrade(r.label)) + '</small></div>';
+    var cards = (d.cards || []).map(function (c) {
+      var look = { total: 'blue', enrolled: 'green', today: 'orange', pending: 'amber', cancelled: 'red', transferred: 'slate' }[c.key] || 'blue';
+      return '<button type="button" class="ds-card ' + look + '" data-act="dflt" data-v="' + escv(c.status || 'All') + '">' +
+        '<span class="ds-card-ic">' + (ICO[{ total: 'users', enrolled: 'check', today: 'plus', pending: 'clock', cancelled: 'x', transferred: 'out' }[c.key]] || ICO.users) + '</span>' +
+        '<span class="ds-card-body"><small>' + escv(c.label) + '</small><b>' + nf(c.value) + '</b><em>' + escv(c.hint) + '</em></span>' +
+      '</button>';
     }).join('');
-    return '<div class="ma3-chart"><div class="ma3-yaxis">' + ticks.map(function (t) { return '<span>' + nf(t) + '</span>'; }).join('') + '</div>' +
-      '<div class="ma3-plot"><div class="ma3-grid"></div><div class="ma3-bars">' + bars + '</div></div></div>';
-  }
 
-  function donutHTML(list, total) {
-    var sum = list.reduce(function (a, x) { return a + x.value; }, 0);
-    var acc = 0, parts = [];
-    list.forEach(function (x) {
-      if (!x.value) return;
-      var from = acc / sum * 360, to = (acc + x.value) / sum * 360;
-      acc += x.value;
-      parts.push(x.color + ' ' + from.toFixed(2) + 'deg ' + to.toFixed(2) + 'deg');
-    });
-    var bg = parts.length ? 'conic-gradient(' + parts.join(',') + ')' : '#e8eef7';
-    var legend = list.map(function (x) {
-      return '<div><i style="background:' + x.color + '"></i><span><b>' + escv(x.label) + '</b>' +
-        '<span>' + nf(x.value) + ' &middot; ' + pc(x.value, sum) + '</span></span></div>';
-    }).join('');
-    return '<div class="ma3-status"><div class="ma3-donut" style="background:' + bg + '"><div><b>' + nf(total) + '</b><small>Total</small></div></div>' +
-      '<div class="ma3-legend">' + legend + '</div></div>';
-  }
+    var progressPanel =
+      '<section class="ds-progress">' +
+        '<div class="ds-ring" style="--p:' + (p.pct || 0) + '"><div><b>' + (p.pct || 0) + '%</b><span>complete</span></div></div>' +
+        '<div class="ds-progress-copy"><h3>Enrollment Progress</h3>' +
+          '<p>Enrolled ÷ eligible students for ' + escv(d.sy) + '. Cancelled and transferred-out records are excluded from the eligible count.</p>' +
+          '<div class="ds-progress-stats">' +
+            '<div><b>' + nf(p.enrolled) + '</b><span>Enrolled</span></div>' +
+            '<div><b>' + nf(p.pending) + '</b><span>Pending</span></div>' +
+            '<div><b>' + nf(p.eligible) + '</b><span>Eligible</span></div>' +
+            '<div><b>' + nf(p.cancelled) + '</b><span>Cancelled</span></div>' +
+            '<div><b>' + nf(p.transferred) + '</b><span>Transferred</span></div>' +
+          '</div></div>' +
+      '</section>';
 
-  function relTime(x) {
-    var d = String(x.date || '').slice(0, 10), t = String(x.time || '');
-    var when = null;
-    if (/^\d{4}-\d{2}-\d{2}$/.test(d) && /^\d{1,2}:\d{2}$/.test(t)) when = new Date(d + 'T' + t + ':00');
-    if (!when || isNaN(when.getTime())) return escv(d || t || '');
-    var mins = Math.round((Date.now() - when.getTime()) / 60000);
-    if (mins < 0) return escv(t);
-    if (mins < 1) return 'just now';
-    if (mins < 60) return mins + 'm ago';
-    if (mins < 1440) return Math.round(mins / 60) + 'h ago';
-    if (mins < 2880) return 'yesterday';
-    return when.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  }
-
-  function renderDashboard(r) {
-    var d = (r && r.data) || {}, st = d.stats || {};
-    var total = Number(st.total || 0);
-    var sy = (S.cfg && S.cfg.sy) || '';
-    var full = (typeof FULL === 'function') && FULL();
-    var sys = (typeof SYS === 'function') && SYS();
-
-    var greeting = (typeof greet === 'function' ? greet() : 'Welcome');
-    var rawName = (S.user && S.user.FullName) || 'Administrator';
-    var name = (typeof tc === 'function' ? tc(rawName) : rawName);
-
-    var dt = $('maTopDate');
-    if (dt) {
-      dt.innerHTML = ((typeof I === 'object' && I.cal) ? I.cal : '') + '<b>' +
-        new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) + '</b>';
-      var tr = document.querySelector('#main>.top .tr'), chip = tr && tr.querySelector('.uchip');
-      if (tr && chip && dt.parentNode !== tr) tr.insertBefore(dt, chip);
-    }
-
-    var grades = (Array.isArray(d.gradeLevels) ? d.gradeLevels : []).map(function (x) {
-      return { label: String(x[0] || ''), value: Number(x[1]) || 0 };
-    });
-
-    var cards =
-      kpiCard('blue', IC.people, 'Total Applications', total, 'School Year ' + sy, 'dflt', 'All') +
-      kpiCard('orange', IC.clock, 'Not Yet Enrolled', st.pending, pc(st.pending, total) + ' of applicants', 'dflt', 'Not Enrolled') +
-      kpiCard('green', IC.check, 'Enrolled Students', st.enrolled, pc(st.enrolled, total) + ' of applicants', 'dflt', 'Enrolled') +
-      kpiCard('purple', IC.cap, 'Temporary Enrollment', st.temp, pc(st.temp, total) + ' of applicants', 'dflt', 'Temporary');
-
-    var quick = [
-      '<button type="button" data-act="quick">' + IC.userPlus + '<span>Add Applicant</span></button>',
-      full ? '<button type="button" data-act="nav" data-v="rep">' + IC.bars + '<span>View Reports</span></button>' : '',
-      '<button type="button" data-act="dflt" data-v="Enrolled">' + IC.users + '<span>Manage Students</span></button>',
-      sys ? '<button type="button" data-act="nav" data-v="set">' + IC.gear + '<span>Settings</span></button>' : ''
-    ].join('');
-
-    $('view').innerHTML =
-      '<div class="ma3-dash">' +
-        '<section class="ma3-hero"><div>' +
-          '<h2>' + escv(greeting) + ', ' + escv(name) + '!</h2>' +
-          '<p>Welcome to the Moreh Academy Admission Portal.</p>' +
-          '<em>Together, we build a brighter future.</em>' +
-        '</div></section>' +
-        '<section class="ma3-kpis">' + cards + '</section>' +
-        '<section class="ma3-row">' +
-          '<div class="ma3-panel"><div class="ma3-head"><h3>' + IC.bars + 'Enrollment by Grade Level</h3><small>SY ' + escv(sy) + '</small></div>' +
-            chartHTML(grades) + '</div>' +
-          '<div class="ma3-panel"><div class="ma3-head"><h3>' + IC.pie + 'Application Status</h3></div>' +
-            donutHTML(statusList(st), total) + '</div>' +
-          '<figure class="ma3-campus"><img src="' + CAMPUS + '" alt="Moreh College campus under a blue sky">' +
-            '<figcaption><b>Moreh Academy</b><span>A Community of Excellence</span></figcaption></figure>' +
-        '</section>' +
-        '<section class="ma3-row2">' +
-          '<div class="ma3-panel"><div class="ma3-head"><h3>' + IC.alert + 'Needs Attention</h3></div>' +
-            '<div id="ma3-attn"></div></div>' +
-          '<div class="ma3-panel"><div class="ma3-head"><h3>' + IC.clock + 'Recent Activity</h3>' +
-            '<a href="javascript:void(0)" data-act="auditall">View All &#8594;</a></div>' +
-            '<div id="ma3-act"><div class="ma3-empty">Loading activity&hellip;</div></div></div>' +
-          '<div class="ma3-panel ma3-qa-wrap"><div class="ma3-head"><h3>' + IC.bolt + 'Quick Actions</h3></div>' +
-            '<div class="ma3-qa">' + quick + '</div></div>' +
-        '</section>' +
+    var charts =
+      '<div class="ds-charts">' +
+        donut('Enrolled by Level', 'Officially enrolled', ch.byLevel || [], p.enrolled, 'Enrolled') +
+        donut('Applicants by Scholarship', 'Stored categories, unmerged', ch.byScholarship || [], d.totals.scoped, 'Applicants') +
+        donut('Students by Sex', 'Legal sex on record', ch.bySex || [], d.totals.scoped, 'Students') +
+        donut('Applicants by Previous School', 'Top 10, then Others', ch.bySchool || [], d.totals.scoped, 'Applicants') +
       '</div>';
 
-    loadPanels(st, full);
+    var levels = (d.levels || []).map(function (l) {
+      var kids = (l.kids || []).filter(function (k) { return k.count || k.label; });
+      var rows = kids.length ? kids.map(function (k) {
+        return '<div class="ds-lvl-row"><span title="' + escv(k.name || '') + '">' + escv(k.label) + '</span><b>' + nf(k.count) + '</b></div>';
+      }).join('') : '<div class="ds-lvl-empty">No programs recorded yet</div>';
+      return '<article class="ds-lvl"><header><h4>' + escv(l.label) + '</h4><b>' + nf(l.total) + '</b></header><div class="ds-lvl-kids">' + rows + '</div></article>';
+    }).join('');
+
+    var recent = (d.recent || []).length ? (d.recent || []).map(function (r) {
+      var st = String(r.status || '');
+      var tone = st === 'Enrolled' ? 'ok' : st === 'Cancelled' ? 'bad' : st === 'Transferred Out' ? 'mut' : st === 'Temporary' ? 'warn' : 'pend';
+      return '<tr><td><b>' + escv(r.name) + '</b><small>' + escv(r.id) + '</small></td>' +
+        '<td>' + escv(r.grade || r.level) + '</td>' +
+        '<td>' + escv(r.date) + (r.time ? '<small>' + escv(r.time) + '</small>' : '') + '</td>' +
+        '<td><span class="ds-badge ' + tone + '">' + escv(st || 'Not Enrolled') + '</span></td></tr>';
+    }).join('') : '<tr><td colspan="4"><div class="ds-empty">No registrations for this selection yet.</div></td></tr>';
+
+    var canFull = (typeof FULL === 'function') && FULL();
+    var canSys = (typeof SYS === 'function') && SYS();
+    var quick = [
+      { ico: ICO.plus, label: 'Register Student', act: 'nav', v: 'adm' },
+      { ico: ICO.search, label: 'Find Learner', act: 'gsopen' },
+      canFull ? { ico: ICO.rep, label: 'Reports', act: 'nav', v: 'rep' } : null,
+      canFull ? { ico: ICO.globe, label: 'Website Management', act: 'nav', v: 'webm' } : null,
+      canSys ? { ico: ICO.user, label: 'User Management', act: 'nav', v: 'um' } : null,
+      { ico: ICO.fee, label: 'Schedule of Fees', act: 'nav', v: 'tf' }
+    ].filter(Boolean).map(function (q) {
+      return '<button type="button" data-act="' + q.act + '"' + (q.v ? ' data-v="' + q.v + '"' : '') + '>' + q.ico + '<span>' + q.label + '</span></button>';
+    }).join('');
+
+    var att = d.attention || { counts: {}, total: 0, rows: [] };
+    var attnRows = (att.rows || []).slice(0, 5).map(function (r) {
+      return '<div class="ds-attn-row"><b>' + escv(r.name) + '</b><span>' + escv(r.grade) + '</span>' +
+        '<em>' + escv((r.badges || []).join(' · ')) + '</em></div>';
+    }).join('');
+    var attn =
+      '<section class="ds-panel"><header><h3>' + ICO.alert + 'Needs Attention</h3>' +
+        '<a href="javascript:void(0)" data-act="nav" data-v="adm">View all</a></header>' +
+        '<div class="ds-attn-counts">' +
+          '<div><b>' + nf(att.total) + '</b><span>Students</span></div>' +
+          '<div><b>' + nf((att.counts || {}).req) + '</b><span>Incomplete requirements</span></div>' +
+          '<div><b>' + nf((att.counts || {}).consent) + '</b><span>Consent missing</span></div>' +
+          '<div><b>' + nf((att.counts || {}).cert) + '</b><span>Certificate blank</span></div>' +
+        '</div>' +
+        (attnRows ? '<div class="ds-attn-list">' + attnRows + '</div>' : '<div class="ds-empty">Every live student has complete requirements.</div>') +
+      '</section>';
+
+    var act = (d.activity || []).length ? (d.activity || []).map(function (x) {
+      var what = String(x.action || 'System activity').replace(/[._]/g, ' ');
+      return '<div class="ds-act-row"><i></i><span><b>' + escv(what.charAt(0).toUpperCase() + what.slice(1)) + '</b>' +
+        '<small>' + escv([x.actor || 'System', x.role || ''].filter(Boolean).join(' · ')) + '</small></span>' +
+        '<time>' + escv(String(x.date || '').slice(0, 10)) + (x.time ? ' ' + escv(String(x.time).slice(0, 5)) : '') + '</time></div>';
+    }).join('') : '<div class="ds-empty">No activity recorded yet.</div>';
+
+    host.innerHTML =
+      '<div class="ds-page">' +
+        '<section class="ds-welcome">' +
+          '<div class="ds-welcome-copy"><h2>' + greeting() + ', ' + escv(displayName()) + '</h2>' +
+            '<p>Here’s what’s happening with admissions today. Click a card to open that list.</p>' +
+            '<div class="ds-welcome-meta">' +
+              '<span>' + escv(new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })) + '</span>' +
+              '<span id="dsClock">' + escv(new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })) + '</span>' +
+              '<span>SY ' + escv(d.sy) + '</span>' +
+            '</div></div>' +
+          '<div class="ds-avatar" aria-hidden="true">' + escv(initials()) + '</div>' +
+        '</section>' +
+        filterBar +
+        '<section class="ds-cards">' + cards + '</section>' +
+        progressPanel +
+        charts +
+        '<section class="ds-levels-wrap"><header><h3>Summary per Academic Level</h3><small>Enrolled students, with grade, strand and program counts</small></header>' +
+          '<div class="ds-levels">' + levels + '</div></section>' +
+        '<div class="ds-two">' +
+          '<section class="ds-panel"><header><h3>Recent Registrations</h3><a href="javascript:void(0)" data-act="nav" data-v="adm">View all</a></header>' +
+            '<div class="ds-table-wrap"><table class="ds-table"><thead><tr><th>Student</th><th>Level</th><th>Registered</th><th>Status</th></tr></thead>' +
+            '<tbody>' + recent + '</tbody></table></div></section>' +
+          '<section class="ds-panel"><header><h3>Quick Actions</h3></header><div class="ds-quick">' + quick + '</div></section>' +
+        '</div>' +
+        '<div class="ds-two">' + attn +
+          '<section class="ds-panel"><header><h3>' + ICO.pulse + 'Recent Activity</h3><a href="javascript:void(0)" data-act="auditall">Full log</a></header>' + act + '</section>' +
+        '</div>' +
+      '</div>';
   }
 
-  function loadPanels(st, full) {
-    // Needs Attention: pending comes from the dashboard payload; the rest arrive separately.
-    var attn = { pending: Number(st.pending || 0), req: null, holds: null, sch: null };
-    function paint() {
-      var box = $('ma3-attn');
-      if (!box) return;
-      var val = function (n) { return n === null ? '&ndash;' : nf(n); };
-      box.innerHTML =
-        '<button type="button" class="ma3-attn-row" data-act="dflt" data-v="Not Enrolled"><span class="ma3-pill a">' + val(attn.pending) + '</span><span class="lbl">Pending Applications</span><span class="go">&#8250;</span></button>' +
-        '<button type="button" class="ma3-attn-row" data-act="nav" data-v="adm"><span class="ma3-pill b">' + val(attn.req) + '</span><span class="lbl">Incomplete Requirements</span><span class="go">&#8250;</span></button>' +
-        '<button type="button" class="ma3-attn-row" data-act="nav" data-v="fl"><span class="ma3-pill c">' + val(attn.holds) + '</span><span class="lbl">Holds Requiring Action</span><span class="go">&#8250;</span></button>' +
-        '<button type="button" class="ma3-attn-row" data-act="nav" data-v="sch"><span class="ma3-pill d">' + val(attn.sch) + '</span><span class="lbl">Scholarship Applications</span><span class="go">&#8250;</span></button>';
-    }
-    paint();
-
-    google.script.run.withSuccessHandler(function (res) {
-      var data = res && res.success && res.data ? res.data : null;
-      if (!data) return paint();
-      var counts = (data.attention && data.attention.counts) || {};
-      attn.req = Number(counts.req || 0);
-      var cats = Array.isArray(data.byCategory) ? data.byCategory : [];
-      attn.sch = cats.reduce(function (a, x) {
-        var k = String(x[0] || '');
-        return a + (k && k !== 'REGULAR' ? Number(x[1]) || 0 : 0);
-      }, 0);
-      paint();
-    }).withFailureHandler(function () {}).dashboardExtra(S.token);
-
-    google.script.run.withSuccessHandler(function (res) {
-      var flags = res && res.success && res.data && Array.isArray(res.data.flags) ? res.data.flags : null;
-      if (!flags) return;
-      attn.holds = flags.length;
-      paint();
-    }).withFailureHandler(function () {}).holdsOverview(S.token);
-
-    if (!full) {
-      var act = $('ma3-act');
-      if (act) act.innerHTML = '<div class="ma3-empty">The activity feed is limited to administrators and system managers.</div>';
-      return;
-    }
-    google.script.run.withSuccessHandler(function (res) {
-      var box = $('ma3-act');
-      if (!box) return;
-      var items = res && res.success && res.data && Array.isArray(res.data.items) ? res.data.items : [];
-      var dots = ['#ef4444', '#16a34a', '#2563eb', '#f59e0b'];
-      box.innerHTML = items.length ? items.slice(0, 4).map(function (x, i) {
-        var what = String(x.action || 'System activity').replace(/[._]/g, ' ');
-        var who = [x.actor || 'System', x.role || ''].filter(Boolean).join(' \u00b7 ');
-        return '<div class="ma3-act-row"><i style="background:' + dots[i % dots.length] + '"></i>' +
-          '<span><b>' + escv(what.charAt(0).toUpperCase() + what.slice(1)) + '</b><small>' + escv(who) + '</small></span>' +
-          '<time>' + relTime(x) + '</time></div>';
-      }).join('') : '<div class="ma3-empty">No recent system activity.</div>';
-    }).withFailureHandler(function () {
-      var box = $('ma3-act');
-      if (box) box.innerHTML = '<div class="ma3-empty">Activity is temporarily unavailable.</div>';
-    }).getRecentActivity(S.token, 12);
+  /* ---------- wiring ---------- */
+  function load() {
+    if (DS.busy) return;
+    DS.busy = true;
+    call('dashboardSpec', [T(), DS.filters], function (r) {
+      DS.busy = false;
+      render(r.data || {});
+    });
+    setTimeout(function () { DS.busy = false; }, 8000);
   }
+
+  /* keep the banner clock live while the dashboard is mounted */
+  setInterval(function () {
+    var el = document.getElementById('dsClock');
+    if (el) el.textContent = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }, 20000);
+
+  window.dsFilter = function (sel) {
+    if (!sel) return;
+    DS.filters[sel.getAttribute('data-ds-filter')] = sel.value;
+    load();
+  };
+  window.dsClear = function () {
+    DS.filters = { level: '', type: '', status: '' };
+    load();
+  };
+
+  document.addEventListener('change', function (e) {
+    var sel = e.target.closest && e.target.closest('[data-ds-filter]');
+    if (sel) { DS.filters[sel.getAttribute('data-ds-filter')] = sel.value; load(); }
+  });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-ds]');
+    if (!b) return;
+    var what = b.getAttribute('data-ds');
+    if (what === 'clear') { DS.filters = { level: '', type: '', status: '' }; load(); }
+    if (what === 'refresh') load();
+  });
 
   window.homeAdmin = function () {
     var sy = (S.cfg && S.cfg.sy) || '';
-    document.body.classList.remove('sbc');
-    head('Dashboard', 'Enrollment overview for School Year ' + sy);
-    call('dashboard', [T()], renderDashboard);
+    head('Dashboard', 'Admissions overview for School Year ' + sy);
+    var dt = $('maTopDate');
+    if (dt) dt.innerHTML = ((typeof I === 'object' && I.cal) ? I.cal : '') + '<b>' +
+      new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) + '</b>';
+    DS.filters = { level: '', type: '', status: '' };
+    $('view').innerHTML = '<div class="ds-page"><div class="ds-empty">Loading the dashboard&hellip;</div></div>';
+    load();
+    /* if the backend never answers, say so instead of spinning forever */
+    setTimeout(function () {
+      var host = $('view');
+      if (!host || host.querySelector('.ds-cards')) return;
+      host.innerHTML = '<div class="ds-page"><div class="ds-empty">The dashboard could not be loaded. Make sure the latest Apps Script version is deployed, then refresh this page.</div></div>';
+    }, 12000);
   };
 })();
 
