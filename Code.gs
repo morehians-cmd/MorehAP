@@ -153,18 +153,37 @@ const deptOf_ = g => { const i = GRADES.indexOf(g); return i<0?'':i<3?'Preschool
 function doGet(e) {
   const p = (e && e.parameter) || {};
   const page = String(p.page || '');
-  const portal = page === 'portal';
+  const wantsAccount = page === 'create-account' || page === 'register';   // homepage "Enroll Now" button
+  const portal = page === 'portal' || wantsAccount;
   const publicPages = ["about","admissions","academics","campus-life","resources","news","contact","about-values","about-history","about-leadership","admissions-enrollment","admissions-requirements","admissions-scholarships","admissions-faq","academics-kindergarten","academics-elementary","academics-junior-high","academics-senior-high","academics-college","campus-organizations","campus-events","campus-sports","campus-clubs","campus-facilities","forms-tlc-application","forms-consent","news-announcements","news-latest","news-events","news-enrollment","news-achievements"];
   const isPublicPage = publicPages.indexOf(page) >= 0;
   const t = HtmlService.createTemplateFromFile(portal ? 'Index' : (isPublicPage ? 'PublicPage' : 'PublicHome'));
   t.appUrl = ScriptApp.getService().getUrl();
-  t.reg = portal && String(p.reg || '') === '1';
+  t.reg = portal && (String(p.reg || '') === '1' || wantsAccount);
   t.prog = ['TLC','ESC','QVR','QVA'].includes(String(p.prog || '')) ? String(p.prog) : '';
   t.page = isPublicPage ? page : 'home';
-  const pageTitles = {"about":"About Moreh Academy","admissions":"Admissions","academics":"Academic Programs","campus-life":"Campus Life","resources":"Downloadable Forms","news":"News & Updates","contact":"Contact Information","about-values":"Vision, Mission & Core Values","about-history":"History","about-leadership":"School Leadership","admissions-enrollment":"Enrollment Procedure","admissions-requirements":"Admission Requirements","admissions-scholarships":"Scholarships","admissions-faq":"Frequently Asked Questions","academics-kindergarten":"Kindergarten","academics-elementary":"Elementary","academics-junior-high":"Junior High School","academics-senior-high":"Senior High School","academics-college":"College Program","campus-organizations":"Student Organizations","campus-events":"School Activities & Events","campus-sports":"Sports & Athletics","campus-clubs":"Clubs & Societies","campus-facilities":"Campus Facilities & Tour","forms-tlc-application":"TLC Student Application Form","forms-consent":"Consent Form","news-announcements":"School Announcements","news-latest":"Latest News","news-events":"Upcoming Events","news-enrollment":"Enrollment Announcements","news-achievements":"School Achievements"};
+  const pageTitles = PAGE_TITLES_;
   t.pageTitle = pageTitles[page] || 'Moreh Academy';
+  if (!portal && !isPublicPage) {
+    t.hc = homepageContent_();
+    t.updatesLive = !(t.hc.updatesItems || []).length;
+    t.updatesHtml = homeUpdatesHtml_(t.hc.updatesItems);
+  }
+  const bn = isPublicPage ? pageBannerFor_(page) : null;
+  t.bannerEyebrow = bn ? bn.eyebrow : PAGE_BANNER_DEFAULTS_.eyebrow;
+  t.bannerSubtitle = bn ? bn.subtitle : PAGE_BANNER_DEFAULTS_.subtitle;
+  t.bannerImage = bn ? bn.image : '';
+  t.bannerAttr = (bn && bn.image) ? ' style="background-image:linear-gradient(105deg,#04215ae8,#063f96c9 60%,#1764bdbf),url(&quot;' + bn.image + '&quot;)"' : '';
+  if (bn) t.pageTitle = bn.title;
+  if (isPublicPage) {
+    t.foot = homepageContent_();
+    const mail = String(t.foot.footerEmail || '').replace(/^[^A-Za-z0-9]+/, '').trim();
+    t.footMail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail) ? 'mailto:' + mail : '';
+    t.introJson = JSON.stringify(pageIntroFor_(page));
+    t.introBlocked = savedPublicPages_().indexOf(page) >= 0;
+  }
   return t.evaluate()
-    .setTitle(portal ? 'Moreh Academy Portal' : (isPublicPage ? 'Moreh Academy | ' + page.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : 'Moreh Academy'))
+    .setTitle(portal ? 'Moreh Academy Portal' : (isPublicPage ? 'Moreh Academy | ' + t.pageTitle : 'Moreh Academy'))
     .addMetaTag('viewport', 'width=device-width, initial-scale=1, viewport-fit=cover');
 }
 function include(f) { return HtmlService.createHtmlOutputFromFile(f).getContent(); }

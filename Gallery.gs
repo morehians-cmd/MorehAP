@@ -20,11 +20,25 @@ const GAL_MAX_B64 = 2200000;                     // ~1.6 MB of image data after 
 const galKey_ = page => { page = String(page || ''); if (!GAL_PAGES.includes(page)) throw new Error('Unknown page.'); return 'gal_' + page; };
 const galCap_ = s => String(s == null ? '' : s).replace(/[\u0000-\u001f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
 
+/** Photos saved under an older page name still show (and move over on the next edit). */
+const GAL_ALIAS = { history:'about-history', facilities:'campus-facilities' };
+
+function galParse_(b) {
+  let L = [];
+  if (b.row) { try { L = JSON.parse(String(b.sh.getRange(b.row, 2).getValue() || '[]')); } catch (_) { L = []; } }
+  return (Array.isArray(L) ? L : []).filter(x => x && typeof x.id === 'string' && x.id).map(x => ({ id:x.id, cap:galCap_(x.cap) }));
+}
+
 /** Reads the list for a page: { b: block row handle, list: [{id, cap}] }. */
 function galRead_(page) {
-  const b = blockRow_(galKey_(page)); let L = [];
-  if (b.row) { try { L = JSON.parse(String(b.sh.getRange(b.row, 2).getValue() || '[]')); } catch (_) { L = []; } }
-  return { b:b, list:(Array.isArray(L) ? L : []).filter(x => x && typeof x.id === 'string' && x.id).map(x => ({ id:x.id, cap:galCap_(x.cap) })) };
+  const b = blockRow_(galKey_(page));
+  const list = galParse_(b);
+  if (list.length || !GAL_ALIAS[page]) return { b:b, list:list };
+  try {
+    const legacy = galParse_(blockRow_('gal_' + GAL_ALIAS[page]));
+    if (legacy.length) return { b:b, list:legacy };
+  } catch (_) {}
+  return { b:b, list:list };
 }
 function galWrite_(page, b, list) { put_(b.sh, b.row || (b.sh.getLastRow() + 1), 1, [[galKey_(page), JSON.stringify(list)]]); }
 
